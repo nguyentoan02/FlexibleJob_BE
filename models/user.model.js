@@ -1,9 +1,37 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema({
-  username: { type: String, unique: true, required: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' }
+  firstName: String,
+  lastName: String,
+  email: {
+    type: String,
+    unique: true,
+    validate: {
+      validator: function (v) {
+        return /@/.test(v);
+      },
+      message: props => 'Email must contain @ symbol'
+    }
+  },
+  password: {
+    type: String,
+    validate: {
+      validator: function (v) {
+        return /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(.{6,})$/.test(v);
+      },
+      message: props => 'Password must be at least 6 characters'
+    }
+  },
+  cvProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'CVProfile' },
+  packages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Package' }],
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+  role: {
+    type: String,
+    enum: ['ADMIN', 'JOBSEEKER', 'EMPLOYER'],
+    default: 'JOBSEEKER'
+  },
 });
+
 
 module.exports = mongoose.model('User', UserSchema);
