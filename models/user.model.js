@@ -6,23 +6,24 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     unique: true,
-    validate: {
-      validator: function (v) {
-        return /@/.test(v);
-      },
-      message: props => 'Email must contain @ symbol'
-    }
+    // validate: {
+    //   validator: function (v) {
+    //     return /@/.test(v);
+    //   },
+    //   message: props => 'Email must contain @ symbol'
+    // }
   },
   password: {
     type: String,
-    validate: {
-      validator: function (v) {
-        return /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(.{6,})$/.test(v);
-      },
-      message: props => 'Password must be at least 6 characters'
-    }
+    // validate: {
+    //   validator: function (v) {
+    //     return /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(.{6,})$/.test(v);
+    //   },
+    //   message: props => 'Password must be at least 6 characters'
+    // }
   },
   cvProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'CVProfile' },
+  companyProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'CompanyProfile' },
   packages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Package' }],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -33,5 +34,5 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-
-module.exports = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', UserSchema);
+export default User;
