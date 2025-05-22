@@ -1,6 +1,8 @@
-const User = require('../models/user.model');
+import User from '../models/user.model.js';
 
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   const users = await User.find().select('-password');
   res.json(users);
 };
+
+
