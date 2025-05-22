@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import auth from '../middlewares/auth.middleware.js';
+import isAdmin from '../middlewares/role.middleware.js';
+import { getAllUsers } from '../controllers/user.controller.js';
+
 const router = express.Router();
-const auth = require('../middlewares/auth.middleware');
-const isAdmin = require('../middlewares/role.middleware');
-const { getAllUsers } = require('../controllers/user.controller');
 
-router.get('/', auth, isAdmin('admin'), getAllUsers);
+router.get('/', auth, isAdmin('ADMIN'), getAllUsers);
 
-module.exports = router;
+export default router;
