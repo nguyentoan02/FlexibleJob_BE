@@ -1,7 +1,8 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 const CategorySchema = new mongoose.Schema({
-  categoryName: String,
+    categoryName: String,
 });
 
-module.exports = mongoose.model('CompanyProfile', CompanyProfileSchema);
+const Category = mongoose.model("CompanyProfile", CompanyProfileSchema);
 
+export default Category;

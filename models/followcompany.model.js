@@ -1,8 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const FollowCompanySchema = new mongoose.Schema({
-   Company :  { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    Company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
 
-module.exports = mongoose.model('FollowCompany', FollowCompanySchema);
+const FollowCompany = mongoose.model("FollowCompany", FollowCompanySchema);
+
+export default FollowCompany;
