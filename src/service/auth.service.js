@@ -8,12 +8,12 @@ const dataResponse = (code, message, payload) => {
         code: code,
         message: message,
         payload: payload,
-    }();
+    };
 };
 
 export const createAccount = async (email, hashedPassword, role) => {
     try {
-        const exists = User.exists({ email: email });
+        const exists = await User.exists({ email: email });
         if (exists) {
             return dataResponse(400, "email already in use", null);
         }
