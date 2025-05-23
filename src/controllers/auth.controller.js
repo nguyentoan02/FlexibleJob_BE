@@ -1,5 +1,9 @@
 import { hashPassword } from "../utils/auth.util.js";
-import { createAccount, loginAccount } from "../service/auth.service.js";
+import {
+    createAccount,
+    loginAccount,
+    resetPasswordViaEmail,
+} from "../service/auth.service.js";
 
 export const register = async (req, res) => {
     const { email, password, role } = req.body;
@@ -24,6 +28,14 @@ export const login = async (req, res) => {
     });
 };
 
-export const logout = (req, res) => {
-    res.json({ message: "Logged out successfully" });
+export const resetPassword = async (req, res) => {
+    console.log(req.body);
+    const { email } = req.body;
+
+    const result = await resetPasswordViaEmail(email);
+
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
 };

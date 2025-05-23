@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { secret, expiresIn } from "../config/jwt.js";
+import { generateToken, sendEmail } from "../utils/auth.util.js";
+import Token from "../models/token.model.js";
 
 const dataResponse = (code, message, payload) => {
     return {
@@ -26,7 +28,7 @@ export const createAccount = async (email, hashedPassword, role) => {
 };
 
 export const loginAccount = async (email, password) => {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
         return dataResponse(401, "Invalid credentials", null);
@@ -42,4 +44,27 @@ export const loginAccount = async (email, password) => {
     console.log(decoded);
 
     return dataResponse(200, "login successfully", token);
+};
+
+export const resetPasswordViaEmail = async (email) => {
+    const user = await User.findOne({ email: email });
+    if (!user) {
+        return dataResponse(404, "can not find this user", null);
+    }
+    const resetToken = generateToken();
+    const createToken = await Token.create({
+        token: resetToken,
+        userId: user._id,
+        type: "resetPassword",
+    });
+    if (createToken) {
+        const sendToken = await sendEmail(
+            email,
+            "Reset Your password",
+            `http://localhost:5173/resetPassword/${resetToken}`
+        );
+        return sendToken;
+    } else {
+        return dataResponse(500, "server error", null);
+    }
 };
