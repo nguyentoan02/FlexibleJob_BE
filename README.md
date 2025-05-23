@@ -16,10 +16,10 @@ npm install
 
 ```
 BoilerPlate/
-├── src/           # Mã nguồn
-├── docs/          # Tài liệu
-├── tests/         # Kiểm thử
-└── README.md      # Tài liệu này
+├── src/           
+├── docs/        
+├── tests/        
+└── README.md      
 ```
 
 ## Công nghệ
