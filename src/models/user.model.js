@@ -35,6 +35,7 @@ const UserSchema = new mongoose.Schema({
         enum: ["ADMIN", "JOBSEEKER", "EMPLOYER"],
         default: "JOBSEEKER",
     },
+    imageUrl: String,
 });
 
 const User = mongoose.model("User", UserSchema);
