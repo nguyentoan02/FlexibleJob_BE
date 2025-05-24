@@ -5,7 +5,7 @@ const CompanyProfileSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     aboutUs: String,
     address: String,
-    status: boolean,
+    status: Boolean,
     imageUrl: String,
     identityImage: String,
 });

@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { secret, expiresIn } from "../config/jwt.js";
-import { generateToken, sendEmail } from "../utils/auth.util.js";
+import { generateToken, hashPassword, sendEmail } from "../utils/auth.util.js";
 import Token from "../models/token.model.js";
 
 const dataResponse = (code, message, payload) => {
@@ -67,4 +67,30 @@ export const resetPasswordViaEmail = async (email) => {
     } else {
         return dataResponse(500, "server error", null);
     }
+};
+
+export const newPassword1 = async (token, email1, password) => {
+    const hashedPassword = await hashPassword(password);
+
+    const updatedUser = await User.findOneAndUpdate(
+        { email: email1 },
+        { password: hashedPassword },
+        { new: true }
+    );
+    if (updatedUser) {
+        await Token.findOneAndUpdate({ token: token });
+        return dataResponse(200, "reset password successfully", updatedUser);
+    }
+    return dataResponse(404, "User not found", null);
+};
+
+export const verifyResetToken = async (token) => {
+    const token1 = await Token.findOne({ token: token }).populate({
+        path: "userId",
+        select: "email -_id",
+    });
+    if (token1.type === "resetPassword") {
+        return dataResponse(200, "valid token", token1);
+    }
+    return dataResponse(400, "invalid token", null);
 };

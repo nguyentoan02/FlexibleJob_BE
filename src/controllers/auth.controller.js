@@ -2,7 +2,9 @@ import { hashPassword } from "../utils/auth.util.js";
 import {
     createAccount,
     loginAccount,
+    newPassword1,
     resetPasswordViaEmail,
+    verifyResetToken,
 } from "../service/auth.service.js";
 
 export const register = async (req, res) => {
@@ -34,6 +36,27 @@ export const resetPassword = async (req, res) => {
 
     const result = await resetPasswordViaEmail(email);
 
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const newPassword = async (req, res) => {
+    const { token } = req.params;
+    const { email, password } = req.body;
+
+    const result = await newPassword1(token, email, password);
+
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const verifyResetPasswordToken = async (req, res) => {
+    const { token } = req.params;
+    const result = await verifyResetToken(token);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,
