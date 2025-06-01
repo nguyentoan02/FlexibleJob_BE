@@ -1,4 +1,3 @@
-// auth.middleware.js
 import jwt from "jsonwebtoken";
 import { secret } from "../config/jwt.js";
 

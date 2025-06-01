@@ -17,7 +17,7 @@ export const generateToken = () => {
     return token;
 };
 
-export const sendEmail = async (email, subject, conntent) => {
+export const sendEmail = async (email, subject, content) => {
     try {
         const transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST,
@@ -32,16 +32,19 @@ export const sendEmail = async (email, subject, conntent) => {
             },
         });
         const result = await transporter.sendMail({
+            from: process.env.SMTP_MAIL,
             to: email,
             subject: subject,
-            text: conntent,
+            text: content,
         });
+
         return {
-            message: `mail sent to ${email}`,
+            message: `Mail sent to ${email}`,
             code: 200,
             payload: result,
         };
     } catch (error) {
+        console.error("ERROR IN sendEmail:", error);
         return {
             message: error.message,
             code: 500,
