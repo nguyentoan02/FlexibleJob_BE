@@ -45,6 +45,10 @@ const UserSchema = new mongoose.Schema({
         default: "JOBSEEKER",
     },
     imageUrl: String,
+    isBanned: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 // Điều chỉnh validate cho password: chỉ yêu cầu nếu không có googleId
