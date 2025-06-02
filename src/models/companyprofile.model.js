@@ -28,8 +28,8 @@ const CompanyProfileSchema = new mongoose.Schema({
 
     imageUrl: { type: String }, // Ảnh đại diện
     coverImage: { type: String }, // Ảnh nền nếu cần (giống LinkedIn)
-    identityImage: { type: String }, // Ảnh xác thực (giấy phép KD, logo...)
-
+    identityImage: [String], // Ảnh xác thực (giấy phép KD, logo...)
+    albumImage: [String],
     // Duyệt hồ sơ
     isApproved: { type: Boolean, default: false },
 
