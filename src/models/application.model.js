@@ -9,13 +9,13 @@ const ApplicationSchema = new mongoose.Schema({
 
     // Bỏ trạng thái ở đây, hoặc để làm trạng thái tổng quan (ví dụ "active", "withdrawn")
     // status: String,
+    noted: { type: String },
+    createdAt: { type: Date, default: Date.now },
     status: {
         type: String,
         enum: ["APPLIED", "REJECTED", "HIRED"],
         default: "APPLIED",
     },
-    noted: { type: String },
-    createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });
 
