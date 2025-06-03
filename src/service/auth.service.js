@@ -19,7 +19,12 @@ export const createAccount = async (email, hashedPassword, role) => {
         if (exists) {
             return dataResponse(400, "email already in use", null);
         }
-        const user = new User({ email, password: hashedPassword, role });
+        const user = new User({ 
+            email, 
+            password: hashedPassword, 
+            role,
+            isBanned: false
+        });
         await user.save();
         return dataResponse(200, "create account successfully", user);
     } catch (err) {
@@ -32,6 +37,11 @@ export const loginAccount = async (email, password) => {
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
         return dataResponse(401, "Invalid credentials", null);
+    }
+
+    // Check if user is banned
+    if (user.isBanned) {
+        return dataResponse(403, "Your account has been banned. Please contact administrator for more information.", null);
     }
 
     const token = jwt.sign(
