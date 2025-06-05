@@ -84,3 +84,16 @@ export const expireJob = async (jobId, action) => {
     }
     return dataResponse(200, "success", job);
 };
+
+export const getListApplicant = async (jobId) => {
+    const applicants = await Job.findById(jobId)
+        .select("applicants")
+        .populate({
+            path: "applicants",
+            populate: [{ path: "cv" }, { path: "user" }],
+        });
+    if (!applicants) {
+        return dataResponse(404, "Job not found", null);
+    }
+    return dataResponse(200, "Success", applicants);
+};

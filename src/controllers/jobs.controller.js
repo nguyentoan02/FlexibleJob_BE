@@ -2,6 +2,7 @@ import {
     createJobForCompany,
     expireJob,
     getAllAvailableJobs,
+    getListApplicant,
 } from "../service/jobs.service.js";
 
 export const getAllJob = async (req, res) => {
@@ -62,6 +63,19 @@ export const getJobByCompany = async (req, res) => {
 export const handleExpireJob = async (req, res) => {
     const { jobId } = req.params;
     const result = await expireJob(jobId, true);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const updateJob = async (req, res) => {
+    const { jobId } = req.params;
+};
+
+export const viewListApplicant = async (req, res) => {
+    const { jobId } = req.params;
+    const result = await getListApplicant(jobId);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

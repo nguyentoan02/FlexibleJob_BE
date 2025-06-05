@@ -14,6 +14,6 @@ router.get("/", auth, isRole("ADMIN"), getAllUsers);
 
 router.get("/:userId", getUserById);
 
-router.put("/userId", auth, checkUserId, updateUserProfileById);
+router.put("/:userId", auth, checkUserId, updateUserProfileById);
 
 export default router;
