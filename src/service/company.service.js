@@ -60,3 +60,46 @@ export const removeEmptyFields = (obj) => {
         })
     );
 };
+
+export const createCompany = async (
+    companyName,
+    userId,
+    aboutUs,
+    address,
+    location,
+    industry,
+    companySize,
+    website,
+    email,
+    phone,
+    linkedinUrl,
+    facebookUrl,
+    avatar,
+    coverImage,
+    albumImage,
+    identityImage
+) => {
+    try {
+        const result = await CompanyProfile.create({
+            companyName: companyName,
+            user: userId,
+            aboutUs: aboutUs,
+            address: address,
+            location: location,
+            industry: industry,
+            companySize: companySize,
+            website: website,
+            email: email,
+            phone: phone,
+            linkedinUrl: linkedinUrl,
+            facebookUrl: facebookUrl,
+            imageUrl: avatar,
+            coverImage: coverImage,
+            albumImage: albumImage,
+            identityImage: identityImage,
+        });
+        return dataResponse(200, "create success", result);
+    } catch (err) {
+        return dataResponse(500, err.message, null);
+    }
+};
