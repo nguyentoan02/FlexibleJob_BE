@@ -13,14 +13,11 @@ export const allCategory = async () => {
     return dataResponse(200, "success", result);
 };
 
-export const insertCategory = async (categoyName) => {
+export const createNewCategory = async (categoyName) => {
     try {
-        const category = Category.create(
-            {
-                categoryName: categoyName,
-            },
-            { new: true }
-        );
+        const category = Category.create({
+            categoryName: categoyName,
+        });
         return dataResponse(201, "category created success", category);
     } catch (error) {
         return dataResponse(500, error.message, null);
