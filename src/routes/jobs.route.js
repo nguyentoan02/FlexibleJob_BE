@@ -4,21 +4,25 @@ import {
     getAllJob,
     handleExpireJob,
     updateJob,
+    viewJobsOfCompany,
     viewListApplicant,
 } from "../controllers/jobs.controller.js";
 import auth from "../middlewares/auth.middleware.js";
 import { isCompany } from "../middlewares/job.middleware.js";
+import { isRole } from "../middlewares/role.middleware.js";
 
 const router = express.Router();
 
-router.get("/", getAllJob);
+router.get("/", auth, isRole("ADMIN"), getAllJob);
 
-router.post("/", createJob);
+router.post("/:companyId", auth, isCompany, createJob);
 
 router.post("/expireJob/:jobId", handleExpireJob);
 
-router.put("/:jobId", updateJob);
+router.put("/:jobId", auth, isCompany, updateJob);
 
 router.get("/:jobId", auth, isCompany, viewListApplicant);
+
+router.get("/company/:companyId", viewJobsOfCompany);
 
 export default router;
