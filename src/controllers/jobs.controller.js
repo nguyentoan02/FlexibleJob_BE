@@ -1,3 +1,4 @@
+import { getCompanyByUserId } from "../service/company.service.js";
 import {
     createJobForCompany,
     expireJob,
@@ -19,10 +20,16 @@ export const getAllJob = async (req, res) => {
 };
 
 export const createJob = async (req, res) => {
-    const { companyId } = req.params;
+    const { id } = req.user;
+    const companyId = await getCompanyByUserId(id);
+    if (!companyId) {
+        return res
+            .status(companyId.code)
+            .json({ message: companyId.message, payload: companyId.payload });
+    }
     const data = {
         ...req.body,
-        company: companyId,
+        company: companyId.payload._id,
     };
     const result = await createJobForCompany(data);
     res.status(result.code).json({

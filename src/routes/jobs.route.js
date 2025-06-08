@@ -15,7 +15,7 @@ const router = express.Router();
 
 router.get("/", auth, isRole("ADMIN"), getAllJob);
 
-router.post("/:companyId", auth, isCompany, createJob);
+router.post("/createJob", auth, isCompany, createJob);
 
 router.post("/expireJob/:jobId", handleExpireJob);
 

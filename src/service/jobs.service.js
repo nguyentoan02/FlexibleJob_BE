@@ -89,3 +89,11 @@ export const getJobs = async (companyId) => {
     });
     return dataResponse(200, "success", jobs);
 };
+
+export const getCompanyIdByUserId = async (userId) => {
+    const company = await CompanyProfile.exists({ user: userId });
+    if (!company) {
+        return dataResponse(404, "not found this company", null);
+    }
+    return dataResponse(200, "found", company);
+};
