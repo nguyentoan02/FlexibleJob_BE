@@ -2,10 +2,10 @@ import {
     createCompany,
     getCompanyByUserId,
     getCompanyProfile,
-    removeEmptyFields,
     updateCompanyProfile,
 } from "../service/company.service.js";
 import { uploadToCloudinary } from "../utils/cloudinary.util.js";
+import { removeEmptyFields } from "../utils/handleArray.util.js";
 
 export const getCompanyById = async (req, res) => {
     const { companyId } = req.params;

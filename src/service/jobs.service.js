@@ -23,37 +23,9 @@ export const getAllAvailableJobs = async (page, limit) => {
     return dataResponse(200, "All jobs available", payload);
 };
 
-export const createJobForCompany = async (
-    companyId,
-    category,
-    title,
-    description,
-    requirements,
-    benefits,
-    experienceYears,
-    level,
-    jobType,
-    location,
-    isRemote,
-    salary,
-    deadline
-) => {
+export const createJobForCompany = async (data) => {
     try {
-        const result = Job.create({
-            company: companyId,
-            category: category,
-            title: title,
-            description: description,
-            requirements: requirements,
-            benefits: benefits,
-            experienceYears: experienceYears,
-            level: level,
-            jobType: jobType,
-            location: location,
-            isRemote: isRemote,
-            salary: salary,
-            deadline: deadline,
-        });
+        const result = Job.create(data);
         return dataResponse(200, "create job success", result);
     } catch (error) {
         return dataResponse(500, error.message, null);
@@ -71,11 +43,12 @@ export const getJobByCompanyId = async (companyId) => {
     return 404, "company not found", null;
 };
 
-export const expireJob = async (jobId, action) => {
+export const expireJob = async (jobId, action, date) => {
     const job = await Job.findByIdAndUpdate(
         jobId,
         {
             isExpired: action,
+            expiredAt: date,
         },
         { new: true }
     );
@@ -96,4 +69,23 @@ export const getListApplicant = async (jobId) => {
         return dataResponse(404, "Job not found", null);
     }
     return dataResponse(200, "Success", applicants);
+};
+
+export const updateJobByJobId = async (jobId, data) => {
+    const updatedJob = await Job.findByIdAndUpdate(
+        jobId,
+        { data },
+        { new: true }
+    );
+    if (!updatedJob) {
+        return dataResponse(404, "not found this job", null);
+    }
+    return dataResponse(200, "job updated");
+};
+
+export const getJobs = async (companyId) => {
+    const jobs = await Job.find({
+        company: companyId,
+    });
+    return dataResponse(200, "success", jobs);
 };
