@@ -25,7 +25,7 @@ export const getAllAvailableJobs = async (page, limit) => {
 
 export const createJobForCompany = async (data) => {
     try {
-        const result = Job.create(data);
+        const result = await Job.create(data);
         return dataResponse(200, "create job success", result);
     } catch (error) {
         return dataResponse(500, error.message, null);
@@ -88,4 +88,12 @@ export const getJobs = async (companyId) => {
         company: companyId,
     });
     return dataResponse(200, "success", jobs);
+};
+
+export const getCompanyIdByUserId = async (userId) => {
+    const company = await CompanyProfile.exists({ user: userId });
+    if (!company) {
+        return dataResponse(404, "not found this company", null);
+    }
+    return dataResponse(200, "found", company);
 };

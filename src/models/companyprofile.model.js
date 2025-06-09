@@ -5,6 +5,7 @@ const CompanyProfileSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 
     aboutUs: { type: String },
+    benefit: [String], // vi du: luong cao, bao hiem xa hoi, ....
     address: { type: String },
     location: { type: String }, // ví dụ: Hà Nội, TP.HCM, Đà Nẵng
 
