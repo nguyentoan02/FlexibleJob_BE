@@ -1,13 +1,15 @@
-import Job from "../models/jobs.model.js";
+import CompanyProfile from "../models/companyprofile.model.js";
 
 export const isCompany = async (req, res, next) => {
-    const { userId } = req.user;
-    const { jobId } = req.params;
-    const result = await Job.findById(jobId)
-        .select("company")
-        .populate("company", "user");
-    if (result.company.user === userId) {
+    const { id } = req.user;
+    console.log(id);
+    const result = await CompanyProfile.findOne({ user: id });
+    console.log(result.isApproved);
+    if (result.isApproved) {
         next();
+    } else {
+        return res
+            .status(403)
+            .json({ message: "your company dont have this job" });
     }
-    return res.status(403).json({ message: "your company dont have this job" });
 };

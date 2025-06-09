@@ -25,7 +25,7 @@ export const getAllAvailableJobs = async (page, limit) => {
 
 export const createJobForCompany = async (data) => {
     try {
-        const result = Job.create(data);
+        const result = await Job.create(data);
         return dataResponse(200, "create job success", result);
     } catch (error) {
         return dataResponse(500, error.message, null);
