@@ -8,7 +8,7 @@ const JobSchema = new mongoose.Schema({
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Category",
+        ref: "Categories",
         required: true,
     },
     title: { type: String, required: true },

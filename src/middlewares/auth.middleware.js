@@ -15,3 +15,13 @@ const auth = (req, res, next) => {
 };
 
 export default auth;
+// isRole middleware của bạn
+export const isRole = (role) => {
+    return (req, res, next) => {
+        // Đảm bảo req.user và req.user.role đã được thiết lập bởi middleware 'auth'
+        if (!req.user || req.user.role !== role) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+        next();
+    };
+};
