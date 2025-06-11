@@ -125,7 +125,7 @@ export const createCompanyProfile = async (req, res) => {
 };
 
 export const getMyCompany = async (req, res) => {
-    const { userId } = req.userId;
+    const userId = req.user.id;
     const result = await getCompanyByUserId(userId);
     res.status(result.code).json({
         message: result.message,

@@ -14,8 +14,8 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
 
-router.get("/:companyId", getCompanyById); //Jobseeker get company via companyId
 router.get("/myCompany", auth, isRole("EMPLOYER"), getMyCompany); //get My own company dumami
+router.get("/:companyId", getCompanyById); //Jobseeker get company via companyId
 router.post(
     "/",
     auth,

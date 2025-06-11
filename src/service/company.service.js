@@ -44,7 +44,9 @@ export const createCompany = async (data) => {
 };
 
 export const getCompanyByUserId = async (userId) => {
-    const company = await CompanyProfile.findOne({ user: userId });
+    const company = await CompanyProfile.findOne({ user: userId }).populate(
+        "user"
+    );
     if (!company) {
         return dataResponse(404, "can not find this company profile", null);
     }
