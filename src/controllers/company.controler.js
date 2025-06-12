@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import {
     createCompany,
     getCompanyByUserId,
@@ -17,52 +18,73 @@ export const getCompanyById = async (req, res) => {
 };
 
 export const updateCompany = async (req, res) => {
-    const userId = req.user.id;
-    console.log(req.user);
-    const result = {
-        imageUrl: null,
-        coverImage: null,
-        albumImage: [],
-    };
+    try {
+        // Convert userId to string first
+        const userId = req.user.id;
 
-    if (req.files.imageUrl) {
-        const file = req.files.imageUrl[0];
-        const uploaded = await uploadToCloudinary(
-            file.buffer,
-            "Company_avatars"
-        );
-        result.imageUrl = uploaded.secure_url;
-    }
+        const result = {
+            imageUrl: null,
+            coverImage: null,
+            albumImage: [],
+        };
 
-    if (req.files.coverImage) {
-        const file = req.files.coverImage[0];
-        const uploaded = await uploadToCloudinary(
-            file.buffer,
-            "Company_covers"
-        );
-        result.coverImage = uploaded.secure_url;
-    }
+        // Ensure removeImages is always an array
+        const imagesToRemove = req.body.removeImages;
 
-    if (req.files.albumImage) {
-        for (const file of req.files.albumImage) {
+        // Xử lý upload ảnh mới
+        if (req.files.imageUrl) {
+            const file = req.files.imageUrl[0];
             const uploaded = await uploadToCloudinary(
                 file.buffer,
-                "Company_albums"
+                "Company_avatars"
             );
-            result.albumImage.push(uploaded.secure_url);
+            result.imageUrl = uploaded.secure_url;
         }
-    }
-    const cleanedImages = removeEmptyFields(result);
-    const profileData = {
-        ...req.body,
-        ...cleanedImages,
-    };
 
-    const update = await updateCompanyProfile(userId, profileData);
-    res.status(update.code).json({
-        message: update.message,
-        payload: update.payload,
-    });
+        if (req.files.coverImage) {
+            const file = req.files.coverImage[0];
+            const uploaded = await uploadToCloudinary(
+                file.buffer,
+                "Company_covers"
+            );
+            result.coverImage = uploaded.secure_url;
+        }
+
+        if (req.files.albumImage) {
+            for (const file of req.files.albumImage) {
+                const uploaded = await uploadToCloudinary(
+                    file.buffer,
+                    "Company_albums"
+                );
+                result.albumImage.push(uploaded.secure_url);
+            }
+        }
+
+        const cleanedImages = removeEmptyFields(result);
+        const profileData = {
+            ...req.body,
+            ...cleanedImages,
+            removeImages: imagesToRemove,
+        };
+
+        console.log("Request body:", req.body);
+        console.log("Request files:", req.files);
+
+        delete profileData._id;
+        delete profileData.user;
+
+        const update = await updateCompanyProfile(userId, profileData);
+        res.status(update.code).json({
+            message: update.message,
+            payload: update.payload,
+        });
+    } catch (error) {
+        console.error("Update Company Error:", error);
+        res.status(500).json({
+            message: "Internal Server Error",
+            error: error.message,
+        });
+    }
 };
 
 export const createCompanyProfile = async (req, res) => {
