@@ -2,6 +2,9 @@ import express from "express";
 import {
     createJob,
     getAllJob,
+    getJobByCompany,
+    getJobByJobId,
+    getJobsByCompany,
     handleExpireJob,
     updateJob,
     viewJobsOfCompany,
@@ -24,5 +27,9 @@ router.put("/:jobId", auth, isCompany, updateJob);
 router.get("/:jobId", auth, isCompany, viewListApplicant);
 
 router.get("/company/:companyId", viewJobsOfCompany);
+
+router.get("/getJobs/ByCompany", auth, isCompany, getJobsByCompany);
+
+router.get("/getJob/:jobId", getJobByJobId);
 
 export default router;
