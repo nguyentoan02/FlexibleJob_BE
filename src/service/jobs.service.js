@@ -74,7 +74,7 @@ export const getListApplicant = async (jobId) => {
 export const updateJobByJobId = async (jobId, data) => {
     const updatedJob = await Job.findByIdAndUpdate(
         jobId,
-        { data },
+        { ...data },
         { new: true }
     );
     if (!updatedJob) {
@@ -96,4 +96,22 @@ export const getCompanyIdByUserId = async (userId) => {
         return dataResponse(404, "not found this company", null);
     }
     return dataResponse(200, "found", company);
+};
+
+export const getJobsByUserId = async (userId) => {
+    const companyId = await CompanyProfile.exists({ user: userId });
+    console.log("companyId", companyId);
+    if (!companyId) {
+        return dataResponse(404, "can not find this company", null);
+    }
+    const jobs = await Job.find({ company: companyId });
+    return dataResponse(200, "Jobs of the company", jobs);
+};
+
+export const getJobById = async (jId) => {
+    const job = await Job.findById(jId);
+    if (!job) {
+        return dataResponse(404, "not found", null);
+    }
+    return dataResponse(200, "found", job);
 };

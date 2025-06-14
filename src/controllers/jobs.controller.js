@@ -5,6 +5,7 @@ import {
     getAllAvailableJobs,
     getJobByCompanyId,
     getJobs,
+    getJobsByUserId,
     getListApplicant,
     updateJobByJobId,
 } from "../service/jobs.service.js";
@@ -80,6 +81,24 @@ export const viewListApplicant = async (req, res) => {
 export const viewJobsOfCompany = async (req, res) => {
     const { companyId } = req.params;
     const result = await getJobs(companyId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const getJobsByCompany = async (req, res) => {
+    const userId = req.user.id;
+    const result = await getJobsByUserId(userId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const getJobByJobId = async (req, res) => {
+    const { jobId } = req.params;
+    const result = await getJobByJobId(jobId);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,
