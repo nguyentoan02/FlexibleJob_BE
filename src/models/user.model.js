@@ -49,6 +49,10 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    // Thêm trường này để lưu trữ các đơn ứng tuyển của người dùng
+    applications: [
+        { type: mongoose.Schema.Types.ObjectId, ref: "Application" },
+    ],
 });
 
 // Điều chỉnh validate cho password: chỉ yêu cầu nếu không có googleId

@@ -18,7 +18,7 @@ app.use(express.json());
 
 app.use(passport.initialize());
 app.use(morgan("dev"));
-
+app.use(express.urlencoded({ extended: true }));
 // Mount the main router
 app.use("/api", mainRouter);
 

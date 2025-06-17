@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 const CVProfileSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     skills: [String],
@@ -31,6 +32,8 @@ const CVProfileSchema = new mongoose.Schema({
     avatar: String,
 });
 
-const CvProfile = mongoose.model("CvProfile", CVProfileSchema);
+// Kiểm tra xem model đã tồn tại chưa
+const CvProfile =
+    mongoose.models.CvProfile || mongoose.model("CvProfile", CVProfileSchema);
 
 export default CvProfile;
