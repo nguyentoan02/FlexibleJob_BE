@@ -10,12 +10,16 @@ import cvProfileRoutes from "./cvProfile.routes.js";
 import applicationRoutes from "./application.routes.js";
 const router = express.Router();
 
+import jobRoute from "./jobs.route.js";
+
 router.use("/auth", authRoutes);
 router.use("/user", userRoutes);
 router.use("/company", companyRoutes);
 router.use("/forgot-password", forgotPasswordRoutes);
 router.use("/profile", profileRoutes);
 router.use("/jobs", jobRoutes);
+
+router.use("/jobs", jobRoute);
 router.use("/category", categoryRoutes);
 router.use("/cv-profiles", cvProfileRoutes); // Thêm CV Profile routes
 router.use("/applications", applicationRoutes);

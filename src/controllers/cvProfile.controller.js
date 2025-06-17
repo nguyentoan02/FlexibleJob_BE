@@ -12,6 +12,7 @@ import {
     addExperienceToCv,
     updateExperienceInCv,
     removeExperienceFromCv,
+    getCvProfileWithUserDetails,
 } from "../service/cvProfile.service.js"; // Đường dẫn phải là "../service/" chứ không phải "../services/" nếu tên folder là "service"
 
 const handleResponse = (res, serviceResponse) => {
@@ -195,4 +196,26 @@ export const deleteMyCvProfile = async (req, res) => {
     const userId = req.user.id;
     const response = await deleteCvProfile(cvProfileId, userId);
     handleResponse(res, response);
+};
+
+/**
+ * Lấy thông tin CV Profile cùng với các trường từ User.
+ * @param {Object} req - Request object.
+ * @param {Object} res - Response object.
+ */
+export const fetchCvProfileWithUserDetails = async (req, res) => {
+    const { cvProfileId } = req.params;
+
+    try {
+        const response = await getCvProfileWithUserDetails(cvProfileId);
+        handleResponse(res, response);
+    } catch (error) {
+        console.error(
+            "Error in fetchCvProfileWithUserDetails controller:",
+            error
+        );
+        res.status(500).json({
+            message: "Internal server error during CV Profile retrieval.",
+        });
+    }
 };
