@@ -491,3 +491,27 @@ export const removeExperienceFromCv = async (
         return dataResponse(500, `Server error: ${error.message}`, null);
     }
 };
+
+/**
+ * Lấy thông tin CV Profile cùng với các trường từ User.
+ * @param {string} cvProfileId - ID của CV Profile.
+ * @returns {Promise<Object>} - Đối tượng dataResponse chứa thông tin CV Profile và User.
+ */
+export const getCvProfileWithUserDetails = async (cvProfileId) => {
+    try {
+        // Tìm CV Profile và populate thông tin từ User
+        const cvProfile = await CvProfile.findById(cvProfileId).populate({
+            path: "user",
+            select: "firstName lastName email imageUrl", // Chỉ lấy các trường cần thiết từ User
+        });
+
+        if (!cvProfile) {
+            return dataResponse(404, "CV Profile not found.", null);
+        }
+
+        return dataResponse(200, "CV Profile fetched successfully.", cvProfile);
+    } catch (error) {
+        console.error("Error in getCvProfileWithUserDetails service:", error);
+        return dataResponse(500, `Server error: ${error.message}`, null);
+    }
+};
