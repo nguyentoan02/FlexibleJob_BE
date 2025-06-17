@@ -9,6 +9,7 @@ import multer from "multer";
 import auth from "../middlewares/auth.middleware.js";
 import { isRole } from "../middlewares/role.middleware.js";
 import { isApproved } from "../middlewares/company.middleware.js";
+import { fetchCvProfileWithUserDetails } from "../controllers/cvProfile.controller.js";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -40,6 +41,13 @@ router.put(
         { name: "albumImage", maxCount: 10 },
     ]),
     updateCompany
+);
+
+router.get(
+    "/:cvProfileId/details",
+    auth,
+    isRole("EMPLOYER"),
+    fetchCvProfileWithUserDetails
 );
 
 export default router;
