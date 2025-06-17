@@ -15,7 +15,6 @@ import {
     addMyExperience,
     updateMyExperience,
     deleteMyExperience,
-    fetchCvProfileWithUserDetails,
 } from "../controllers/cvProfile.controller.js";
 
 const router = express.Router();
@@ -45,5 +44,5 @@ router.delete("/:id/education/:eduId", deleteMyEducation); // Xóa Education c�
 router.post("/:id/experience", addMyExperience); // Thêm Experience mới vào CV có ID
 router.put("/:id/experience/:expId", updateMyExperience); // Cập nhật Experience cụ thể trong CV
 router.delete("/:id/experience/:expId", deleteMyExperience); // Xóa Experience cụ thể khỏi CV
-router.get("/:cvProfileId/details", fetchCvProfileWithUserDetails);
+
 export default router;

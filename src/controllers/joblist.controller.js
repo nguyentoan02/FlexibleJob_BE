@@ -9,9 +9,11 @@ export const fetchJobList = async (req, res) => {
     });
 };
 
+// filepath: e:\WDP301\BoilerPlate\src\controllers\joblist.controller.js
 export const fetchJobDetail = async (req, res) => {
-    const { jobId } = req.params; // Lấy jobId từ URL params
-    const result = await getJobDetail(jobId);
+    const { jobId } = req.params; // Get jobId from URL params
+    const userId = req.user?.id; // Get userId from the authenticated user
+    const result = await getJobDetail(jobId, userId);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

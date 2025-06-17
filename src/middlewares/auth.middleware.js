@@ -25,3 +25,23 @@ export const isRole = (role) => {
         next();
     };
 };
+
+export const optionalAuth = (req, res, next) => {
+    const token = req.headers["authorization"]?.split(" ")[1];
+
+    if (token) {
+        try {
+            const decoded = jwt.verify(token, secret);
+            req.user = decoded; // Gán user nếu token hợp lệ
+        } catch (err) {
+            // Token không hợp lệ, nhưng vẫn cho phép request đi tiếp.
+            // Có thể log lỗi ở đây để debug nếu cần.
+            console.warn("Invalid token for optionalAuth:", err.message);
+            req.user = null; // Hoặc undefined, để đảm bảo req.user không chứa thông tin sai
+        }
+    } else {
+        // Không có token, req.user sẽ vẫn là undefined
+        req.user = null; // Gán rõ ràng là null nếu không có token
+    }
+    next(); // Luôn gọi next() để request đi tiếp
+};
