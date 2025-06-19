@@ -11,6 +11,8 @@ import applicationRoutes from "./application.routes.js";
 const router = express.Router();
 
 import jobRoute from "./jobs.route.js";
+import manageCompanyRoutes from "./managecompany.routes.js";
+import manageJobRoutes from "./managejob.routes.js";
 
 router.use("/auth", authRoutes);
 router.use("/user", userRoutes);
@@ -18,6 +20,8 @@ router.use("/company", companyRoutes);
 router.use("/forgot-password", forgotPasswordRoutes);
 router.use("/profile", profileRoutes);
 router.use("/jobs", jobRoutes);
+router.use("/manage-company", manageCompanyRoutes);
+router.use("/manage-jobs", manageJobRoutes);
 
 router.use("/jobs", jobRoute);
 router.use("/category", categoryRoutes);

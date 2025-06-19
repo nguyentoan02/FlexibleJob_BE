@@ -7,23 +7,10 @@ const UserSchema = new mongoose.Schema({
     email: {
         type: String,
         unique: true,
-        required: true, // Thêm required cho email
-        // validate: {
-        //   validator: function (v) {
-        //     return /@/.test(v);
-        //   },
-        //   message: props => 'Email must contain @ symbol'
-        // }
+        required: true,
     },
     password: {
         type: String,
-        // Không bắt buộc nếu người dùng đăng nhập bằng Google
-        // validate: {
-        //   validator: function (v) {
-        //     return /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(.{6,})$/.test(v);
-        //   },
-        //   message: props => 'Password must be at least 6 characters'
-        // }
     },
     googleId: {
         // NEW: Thêm trường Google ID
