@@ -63,7 +63,10 @@ export const getListApplicant = async (jobId) => {
         .select("applicants")
         .populate({
             path: "applicants",
-            populate: [{ path: "cv" }, { path: "user" }],
+            populate: [
+                { path: "cv", select: "-job" },
+                { path: "user", select: "firstName lastName email imageUrl" },
+            ],
         });
     if (!applicants) {
         return dataResponse(404, "Job not found", null);
@@ -98,14 +101,35 @@ export const getCompanyIdByUserId = async (userId) => {
     return dataResponse(200, "found", company);
 };
 
-export const getJobsByUserId = async (userId) => {
-    const companyId = await CompanyProfile.exists({ user: userId });
-    console.log("companyId", companyId);
-    if (!companyId) {
-        return dataResponse(404, "can not find this company", null);
+export const getJobsByUserId = async (
+    userId,
+    page = 1,
+    limit = 10,
+    search = ""
+) => {
+    const company = await CompanyProfile.findOne({ user: userId });
+    if (!company) {
+        return dataResponse(404, "Cannot find this company", null);
     }
-    const jobs = await Job.find({ company: companyId });
-    return dataResponse(200, "Jobs of the company", jobs);
+
+    const skip = (page - 1) * limit;
+
+    const query = { company: company._id };
+
+    if (search) {
+        query.title = { $regex: search, $options: "i" }; // không phân biệt hoa thường
+    }
+
+    const jobs = await Job.find(query).skip(skip).limit(limit).exec();
+
+    const total = await Job.countDocuments(query);
+
+    return dataResponse(200, "Jobs of the company", {
+        total,
+        page,
+        limit,
+        jobs,
+    });
 };
 
 export const getJobById = async (jId) => {

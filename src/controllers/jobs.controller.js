@@ -88,12 +88,23 @@ export const viewJobsOfCompany = async (req, res) => {
 };
 
 export const getJobsByCompany = async (req, res) => {
-    const userId = req.user.id;
-    const result = await getJobsByUserId(userId);
-    res.status(result.code).json({
-        message: result.message,
-        payload: result.payload,
-    });
+    try {
+        const userId = req.user.id;
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || "";
+
+        const result = await getJobsByUserId(userId, page, limit, search);
+
+        res.status(result.code).json({
+            message: result.message,
+            payload: result.payload,
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Internal server error" });
+    }
 };
 
 export const getJobByJobId = async (req, res) => {
