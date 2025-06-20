@@ -17,7 +17,7 @@ router.use("/user", userRoutes);
 router.use("/company", companyRoutes);
 router.use("/forgot-password", forgotPasswordRoutes);
 router.use("/profile", profileRoutes);
-router.use("/jobs", jobRoutes);
+router.use("/job", jobRoutes);
 
 router.use("/jobs", jobRoute);
 router.use("/category", categoryRoutes);

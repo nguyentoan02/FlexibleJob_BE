@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const ApplicationSchema = new mongoose.Schema({
     job: { type: mongoose.Schema.Types.ObjectId, ref: "Job" },
-    cv: { type: mongoose.Schema.Types.ObjectId, ref: "CVProfile" },
+    cv: { type: mongoose.Schema.Types.ObjectId, ref: "CvProfile" },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 
     applicationDate: { type: Date, default: Date.now },
