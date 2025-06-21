@@ -1,5 +1,5 @@
 // src/controllers/application.controller.js
-import { applyForJob } from "../service/application.service.js"; // Chỉ import hàm applyForJob
+import { applyForJob, getMyApplications } from "../service/application.service.js"; // Chỉ import hàm applyForJob
 
 const handleResponse = (res, serviceResponse) => {
     return res.status(serviceResponse.code).json(serviceResponse);
@@ -22,4 +22,9 @@ export const applyToJob = async (req, res) => {
     handleResponse(res, response);
 };
 
-// Loại bỏ tất cả các controller khác: getMyAllApplications, getMyApplicationDetail, withdrawMyApplication, getApplicationsForJob, updateApplicationStatusByEmployer
+// Thêm controller mới sau applyToJob
+export const getMyApplicationsList = async (req, res) => {
+    const userId = req.user.id; // Lấy ID từ JWT token
+    const response = await getMyApplications(userId);
+    handleResponse(res, response);
+};

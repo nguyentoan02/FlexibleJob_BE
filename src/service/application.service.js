@@ -1,8 +1,7 @@
-// src/services/application.service.js
 import Application from "../models/application.model.js";
-import Job from "../models/jobs.model.js"; // Đảm bảo đường dẫn đúng: job.model.js hoặc jobs.model.js
+import Job from "../models/jobs.model.js";
 import User from "../models/user.model.js";
-import CVProfile from "../models/cvprofile.model.js"; // Đảm bảo đường dẫn đúng
+import CvProfile from "../models/cvprofile.model.js"; // Đảm bảo import đúng tên file
 
 // Hàm hỗ trợ định dạng response
 const dataResponse = (code, message, payload) => {
@@ -15,11 +14,6 @@ const dataResponse = (code, message, payload) => {
 
 /**
  * Nộp đơn ứng tuyển cho một công việc.
- * @param {string} userId - ID của người dùng (JOBSEEKER) nộp đơn.
- * @param {string} jobId - ID của công việc.
- * @param {string} cvProfileId - ID của CV Profile mà người dùng muốn sử dụng.
- * @param {string} [noted] - Ghi chú thêm từ ứng viên (tùy chọn).
- * @returns {Promise<Object>} - Đối tượng dataResponse.
  */
 export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
     try {
@@ -33,8 +27,8 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
             return dataResponse(404, "Job not found.", null);
         }
 
-        const cv = await CVProfile.findById(cvProfileId);
-        // Đảm bảo CV thuộc về người dùng hiện tại
+        // Sử dụng CvProfile thay vì CVProfile
+        const cv = await CvProfile.findById(cvProfileId);
         if (!cv || cv.user.toString() !== userId) {
             return dataResponse(
                 403,
@@ -43,7 +37,7 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
             );
         }
 
-        // Kiểm tra xem người dùng đã nộp đơn cho công việc này với CV này chưa
+        // Kiểm tra đơn trùng lặp
         const existingApplication = await Application.findOne({
             user: userId,
             job: jobId,
@@ -58,22 +52,17 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
             );
         }
 
-        // Tạo bản ghi Application mới
         const newApplication = new Application({
             job: jobId,
             cv: cvProfileId,
             user: userId,
             noted: noted,
-            status: "APPLIED", // Mặc định là APPLIED
+            status: "APPLIED",
         });
 
         await newApplication.save();
-
-        // Thêm ID của Application vào mảng applications của User
         user.applications.push(newApplication._id);
         await user.save();
-
-        // Thêm ID của Application vào mảng applicants của Job
         job.applicants.push(newApplication._id);
         await job.save();
 
@@ -88,4 +77,38 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
     }
 };
 
-// Loại bỏ tất cả các hàm khác: getMyApplications, getApplicationDetail, withdrawApplication, getJobApplications, updateApplicationStatus
+/**
+ * Lấy danh sách đơn ứng tuyển của một người dùng
+ */
+export const getMyApplications = async (userId) => {
+    try {
+        const applications = await Application.find({ user: userId })
+            .populate("job", "title company")
+            .populate({
+                path: "cv",
+                model: "CvProfile", // Thêm dòng này để chỉ định rõ model
+                select: "linkUrl",
+            })
+            .populate({
+                path: "job",
+                populate: {
+                    path: "company",
+                    select: "companyName location",
+                },
+            })
+            .sort({ applicationDate: -1 });
+
+        if (!applications || applications.length === 0) {
+            return dataResponse(404, "No applications found", null);
+        }
+
+        return dataResponse(
+            200,
+            "Applications retrieved successfully",
+            applications
+        );
+    } catch (error) {
+        console.error("Error in getMyApplications service:", error);
+        return dataResponse(500, `Server error: ${error.message}`, null);
+    }
+};
