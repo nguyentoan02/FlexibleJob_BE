@@ -19,36 +19,40 @@ export const getCompanyProfile = async (companyId) => {
 
 export const updateCompanyProfile = async (userId, data) => {
     try {
-        const updateOperations = {};
-
-        // Ensure removeImages is an array and not empty before adding $pull
-        if (Array.isArray(data.removeImages) && data.removeImages.length > 0) {
-            updateOperations.$pull = {
-                albumImage: { $in: data.removeImages },
-            };
-        }
-
-        // Ensure albumImage is an array and not empty before adding $push
-        if (Array.isArray(data.albumImage) && data.albumImage.length > 0) {
-            updateOperations.$push = {
-                albumImage: { $each: data.albumImage },
-            };
-        }
-
-        // Remove removeImages from data before spreading into $set
-        const { removeImages, ...restData } = data;
-
-        updateOperations.$set = restData;
-
         const userObjectId = new mongoose.Types.ObjectId(userId);
+        // Lấy profile hiện tại
+        const currentProfile = await CompanyProfile.findOne({
+            user: userObjectId,
+        });
+        if (!currentProfile) {
+            return dataResponse(404, "Cannot find this company", null);
+        }
 
+        // 1. Xử lý xóa ảnh
+        let albumImage = currentProfile.albumImage;
+        if (Array.isArray(data.removeImages) && data.removeImages.length > 0) {
+            albumImage = albumImage.filter(
+                (img) => !data.removeImages.includes(img)
+            );
+        }
+
+        // 2. Thêm ảnh mới (nếu có)
+        if (Array.isArray(data.albumImage) && data.albumImage.length > 0) {
+            albumImage = [...albumImage, ...data.albumImage];
+        }
+
+        // 3. Chuẩn bị dữ liệu update
+        const { removeImages, albumImage: _ignore, ...restData } = data;
+        const updateData = {
+            ...restData,
+            albumImage,
+        };
+
+        // 4. Update
         const updatedCompanyProfile = await CompanyProfile.findOneAndUpdate(
             { user: userObjectId },
-            updateOperations,
-            {
-                new: true,
-                runValidators: true,
-            }
+            { $set: updateData },
+            { new: true, runValidators: true }
         );
 
         if (!updatedCompanyProfile) {

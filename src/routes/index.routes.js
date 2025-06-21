@@ -19,7 +19,7 @@ router.use("/forgot-password", forgotPasswordRoutes);
 router.use("/profile", profileRoutes);
 router.use("/job", jobRoutes);
 
-router.use("/jobs", jobRoute);
+router.use("/manageJobs", jobRoute);
 router.use("/category", categoryRoutes);
 router.use("/cv-profiles", cvProfileRoutes); // Thêm CV Profile routes
 router.use("/applications", applicationRoutes);
