@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import {
+    companyApprove,
     createCompany,
     getCompanyByUserId,
     getCompanyProfile,
@@ -149,6 +150,16 @@ export const createCompanyProfile = async (req, res) => {
 export const getMyCompany = async (req, res) => {
     const userId = req.user.id;
     const result = await getCompanyByUserId(userId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const isCompanyApproved = async (req, res) => {
+    const userId = req.user.id;
+    console.log(userId);
+    const result = await companyApprove(userId);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

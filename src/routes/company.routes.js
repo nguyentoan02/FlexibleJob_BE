@@ -3,6 +3,7 @@ import {
     createCompanyProfile,
     getCompanyById,
     getMyCompany,
+    isCompanyApproved,
     updateCompany,
 } from "../controllers/company.controler.js";
 import multer from "multer";
@@ -16,6 +17,8 @@ const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
 
 router.get("/myCompany", auth, isRole("EMPLOYER"), getMyCompany); //get My own company dumami
+router.get("/isCompanyApproved", auth, isRole("EMPLOYER"), isCompanyApproved);
+
 router.get("/:companyId", getCompanyById); //Jobseeker get company via companyId
 router.post(
     "/",

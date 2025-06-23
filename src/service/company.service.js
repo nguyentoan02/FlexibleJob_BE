@@ -84,3 +84,11 @@ export const getCompanyByUserId = async (userId) => {
     }
     return dataResponse(200, "found company profile", company);
 };
+
+export const companyApprove = async (userId) => {
+    const isApproved = await CompanyProfile.findOne({
+        user: userId,
+    }).select("isApproved");
+    console.log(isApproved);
+    return dataResponse(200, "found", isApproved);
+};
