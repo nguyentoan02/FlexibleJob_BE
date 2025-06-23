@@ -5,5 +5,5 @@ const LikeSchema = new mongoose.Schema({
     blog: { type: mongoose.Schema.Types.ObjectId, ref: "Blog" },
 });
 const Like = mongoose.model("Like", LikeSchema);
-//test
+
 export default Like;
