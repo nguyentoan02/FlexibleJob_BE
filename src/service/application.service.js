@@ -28,7 +28,7 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
         }
 
         // Sử dụng CvProfile thay vì CVProfile
-        const cv = await CvProfile.findById(cvProfileId);
+        const cv = await CvProfile.findById(cvProfileId).lean();
         if (!cv || cv.user.toString() !== userId) {
             return dataResponse(
                 403,
@@ -55,6 +55,7 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
         const newApplication = new Application({
             job: jobId,
             cv: cvProfileId,
+            cvSnapshot: cv, // <--- Lưu snapshot tại đây
             user: userId,
             noted: noted,
             status: "APPLIED",
@@ -86,7 +87,7 @@ export const getMyApplications = async (userId) => {
             .populate("job", "title company")
             .populate({
                 path: "cv",
-                model: "CvProfile", // Thêm dòng này để chỉ định rõ model
+                model: "CvProfile",
                 select: "linkUrl",
             })
             .populate({
@@ -96,16 +97,23 @@ export const getMyApplications = async (userId) => {
                     select: "companyName location",
                 },
             })
-            .sort({ applicationDate: -1 });
+            .sort({ applicationDate: -1 })
+            .lean(); // <-- Thêm .lean() để trả về plain object
 
         if (!applications || applications.length === 0) {
             return dataResponse(404, "No applications found", null);
         }
 
+        // Đảm bảo trả về cả cvSnapshot cho mỗi application
+        const applicationsWithCvSnapshot = applications.map((app) => ({
+            ...app,
+            cvSnapshot: app.cvSnapshot, // đã có sẵn trong document
+        }));
+
         return dataResponse(
             200,
             "Applications retrieved successfully",
-            applications
+            applicationsWithCvSnapshot
         );
     } catch (error) {
         console.error("Error in getMyApplications service:", error);
