@@ -19,6 +19,8 @@ router.use("/user", userRoutes);
 router.use("/company", companyRoutes);
 router.use("/forgot-password", forgotPasswordRoutes);
 router.use("/profile", profileRoutes);
+
+// đây là route lấy danh sách jobs hiển thị
 router.use("/jobs", jobRoutes);
 router.use("/search-jobs", searchJobRoutes);
 router.use("/favorite-jobs", favoriteJobRoutes);
