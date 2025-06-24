@@ -64,7 +64,7 @@ export const getListApplicant = async (jobId) => {
         .populate({
             path: "applicants",
             populate: [
-                { path: "cv", select: "-job" },
+                { path: "cvSnapshot"},
                 { path: "user", select: "firstName lastName email imageUrl" },
             ],
         });
