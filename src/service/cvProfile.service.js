@@ -1,7 +1,7 @@
 // src/service/cvProfile.service.js
 import User from "../models/user.model.js";
 import CvProfile from "../models/cvProfile.model.js";
-import { uploadPdfToCloudinary } from "../utils/cloudinary.util.js";
+import { uploadPdfToS3 } from "../utils/s3.util.js";
 
 const dataResponse = (code, message, payload) => {
     return {
@@ -24,7 +24,6 @@ export const createOrUpdateCvProfile = async (
     cvProfileData,
     pdfFile
 ) => {
-    // **ĐỔI TÊN HÀM NÀY**
     try {
         const user = await User.findById(userId);
         if (!user) {
@@ -36,14 +35,8 @@ export const createOrUpdateCvProfile = async (
             if (pdfFile.mimetype !== "application/pdf") {
                 return dataResponse(400, "File must be a PDF document.", null);
             }
-            const uploadResult = await uploadPdfToCloudinary(
-                pdfFile.buffer,
-                pdfFile.originalname
-            );
-            if (!uploadResult || !uploadResult.secure_url) {
-                return dataResponse(500, "Failed to upload PDF file.", null);
-            }
-            pdfUrl = uploadResult.secure_url;
+            // Sử dụng S3 thay vì Cloudinary
+            pdfUrl = await uploadPdfToS3(pdfFile.buffer, pdfFile.originalname);
         }
 
         // Tìm CV Profile hiện có của người dùng
@@ -172,7 +165,7 @@ export const updateCvProfile = async (
             if (pdfFile.mimetype !== "application/pdf") {
                 return dataResponse(400, "File must be a PDF document.", null);
             }
-            const uploadResult = await uploadPdfToCloudinary(
+            const uploadResult = await uploadPdfToS3(
                 pdfFile.buffer,
                 pdfFile.originalname
             );

@@ -21,7 +21,7 @@ export const getJobList = async (page = 1, limit = 10) => {
         const totalJobs = await Job.countDocuments({ isExpired: false });
         const payload = {
             jobs,
-            totalPage: Math.ceil(totalJobs / limit),
+            totalPages: Math.ceil(totalJobs / limit),
             currentPage: page,
         };
 
