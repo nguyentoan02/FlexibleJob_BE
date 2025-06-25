@@ -1,9 +1,17 @@
 import User from "../models/user.model.js";
+import { sendEmail } from "../utils/auth.util.js";
 
 // Ban a user account
 export const banUser = async (req, res) => {
     try {
         const { userId } = req.params;
+        const { reason } = req.body;
+        if (!reason || reason.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Ban reason is required"
+            });
+        }
         const user = await User.findById(userId);
         
         if (!user) {
@@ -30,7 +38,16 @@ export const banUser = async (req, res) => {
         }
 
         user.isBanned = true;
+        user.banReason = reason;
+        user.banAt = new Date();
         await user.save();
+
+        // Gửi email thông báo ban
+        await sendEmail(
+            user.email,
+            "Your account has been banned",
+            `Your account has been banned for the following reason: ${reason}\nBan time: ${user.banAt.toLocaleString()}`
+        );
 
         return res.status(200).json({ 
             success: true,
@@ -39,7 +56,9 @@ export const banUser = async (req, res) => {
                 _id: user._id,
                 email: user.email,
                 role: user.role,
-                isBanned: user.isBanned
+                isBanned: user.isBanned,
+                banReason: user.banReason,
+                banAt: user.banAt
             }
         });
     } catch (error) {

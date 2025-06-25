@@ -49,6 +49,14 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    banReason: {
+        type: String,
+        default: null,
+    },
+    banAt: {
+        type: Date,
+        default: null,
+    },
 });
 
 // Điều chỉnh validate cho password: chỉ yêu cầu nếu không có googleId

@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
+import streamifier from "streamifier";
 // import fs from 'fs'; // NEW: Không cần import fs nữa vì không ghi file tạm thời
 
 dotenv.config(); // Đảm bảo các biến môi trường được load
@@ -43,4 +44,17 @@ export const uploadImageToCloudinary = async (fileBuffer, originalname) => {
             "Failed to upload image to Cloudinary: " + error.message
         );
     }
+};
+
+export const uploadToCloudinary = (buffer, folder) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder },
+            (error, result) => {
+                if (result) resolve(result);
+                else reject(error);
+            }
+        );
+        streamifier.createReadStream(buffer).pipe(stream);
+    });
 };

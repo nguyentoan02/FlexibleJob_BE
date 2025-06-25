@@ -13,8 +13,8 @@ const JobSchema = new mongoose.Schema({
     },
     title: { type: String, required: true },
     description: { type: String, required: true }, // Mô tả chi tiết công việc
-    requirements: { type: String }, // Các yêu cầu bắt buộc
-    benefits: { type: String }, // Quyền lợi (bảo hiểm, phụ cấp, ...)
+    requirements: [String], // Các yêu cầu bắt buộc
+    benefits: [String], // Quyền lợi (bảo hiểm, phụ cấp, ...)
 
     experienceYears: { type: Number, default: 0 }, // Số năm kinh nghiệm yêu cầu
     level: {
