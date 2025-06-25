@@ -20,13 +20,18 @@ export const isJobLimit = async (req, res, next) => {
     const companyId = await CompanyProfile.findOne({ user: id }).select("_id");
     console.log(companyId);
     if (companyId._id) {
-        const jobLimit = await LimitJobs.findOne({ company: companyId });
+        const jobLimit = await LimitJobs.findOneAndUpdate(
+            { company: companyId },
+            { $inc: { posted: 1 } },
+            { new: true }
+        );
         if (jobLimit.limit === jobLimit.posted) {
             return res.status(400).json({
                 message: "this company reach their jobs limit",
             });
         }
         next();
+    } else {
+        return res.status(404).json({ message: "can not find this company" });
     }
-    return res.status(404).json({ message: "can not find this company" });
 };
