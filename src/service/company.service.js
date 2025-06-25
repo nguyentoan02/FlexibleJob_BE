@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import CompanyProfile from "../models/companyprofile.model.js";
+import LimitJobs from "../models/limitJobs.model.js";
 
 const dataResponse = (code, message, payload) => {
     return {
@@ -69,6 +70,7 @@ export const updateCompanyProfile = async (userId, data) => {
 export const createCompany = async (data) => {
     try {
         const result = await CompanyProfile.create(data);
+        await LimitJobs.create({ company: result._id });
         return dataResponse(200, "create success", result);
     } catch (err) {
         return dataResponse(500, err.message, null);

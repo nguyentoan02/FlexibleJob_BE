@@ -1,5 +1,6 @@
 import CompanyProfile from "../models/companyprofile.model.js";
 import Job from "../models/jobs.model.js";
+import LimitJobs from "../models/limitJobs.model.js";
 
 const dataResponse = (code, message, payload) => {
     return {
@@ -64,7 +65,7 @@ export const getListApplicant = async (jobId) => {
         .populate({
             path: "applicants",
             populate: [
-                { path: "cvSnapshot"},
+                { path: "cvSnapshot" },
                 { path: "user", select: "firstName lastName email imageUrl" },
             ],
         });
@@ -138,4 +139,10 @@ export const getJobById = async (jId) => {
         return dataResponse(404, "not found", null);
     }
     return dataResponse(200, "found", job);
+};
+
+export const getLimit = async (userId) => {
+    const companyId = await CompanyProfile.exists({ user: userId });
+    const jobLimit = await LimitJobs.findOne({ company: companyId._id });
+    return dataResponse(200, "found", jobLimit);
 };

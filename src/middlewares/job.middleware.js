@@ -1,4 +1,5 @@
 import CompanyProfile from "../models/companyprofile.model.js";
+import LimitJobs from "../models/limitJobs.model.js";
 
 export const isCompany = async (req, res, next) => {
     const { id } = req.user;
@@ -12,4 +13,20 @@ export const isCompany = async (req, res, next) => {
             .status(403)
             .json({ message: "your company dont have this job" });
     }
+};
+
+export const isJobLimit = async (req, res, next) => {
+    const { id } = req.user;
+    const companyId = await CompanyProfile.findOne({ user: id }).select("_id");
+    console.log(companyId);
+    if (companyId._id) {
+        const jobLimit = await LimitJobs.findOne({ company: companyId });
+        if (jobLimit.limit === jobLimit.posted) {
+            return res.status(400).json({
+                message: "this company reach their jobs limit",
+            });
+        }
+        next();
+    }
+    return res.status(404).json({ message: "can not find this company" });
 };
