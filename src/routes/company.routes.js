@@ -42,6 +42,7 @@ router.put(
         { name: "imageUrl", maxCount: 1 },
         { name: "coverImage", maxCount: 1 },
         { name: "albumImage", maxCount: 10 },
+        { name: "identityImage", maxCount: 10 },
     ]),
     updateCompany
 );
