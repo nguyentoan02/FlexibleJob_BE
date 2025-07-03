@@ -6,6 +6,7 @@ import forgotPasswordRoutes from "./forgotPassword.routes.js";
 import profileRoutes from "./profile.routes.js";
 import jobRoutes from "./jobs.route.js";
 import categoryRoutes from "./category.routes.js";
+import packageRoutes from "./package.routes.js";
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.use("/forgot-password", forgotPasswordRoutes);
 router.use("/profile", profileRoutes);
 router.use("/jobs", jobRoutes);
 router.use("/category", categoryRoutes);
+router.use("/packages", packageRoutes);
 
 export default router;
