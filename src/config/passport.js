@@ -24,6 +24,13 @@ passport.use(
                 });
 
                 if (user) {
+                    // Kiểm tra xem tài khoản có bị ban không
+                    if (user.isBanned) {
+                        return done(null, false, { 
+                            message: "Your account has been banned. Please contact administrator for more information." 
+                        });
+                    }
+
                     // Nếu người dùng tồn tại nhưng chưa có googleId, cập nhật googleId
                     if (!user.googleId) {
                         user.googleId = profile.id;
@@ -38,6 +45,8 @@ passport.use(
                         firstName: profile.name.givenName,
                         lastName: profile.name.familyName,
                         imageUrl: profile.photos[0].value,
+                        isBanned: false,
+                        role: "JOBSEEKER"
                         // Mật khẩu sẽ không được set nếu đăng nhập bằng Google
                         // Nếu bạn muốn yêu cầu mật khẩu sau này, có thể thêm logic ở đây
                     });

@@ -19,7 +19,6 @@ export const getCompanyById = async (req, res) => {
 
 export const updateCompany = async (req, res) => {
     try {
-        // Convert userId to string first
         const userId = req.user.id;
 
         const result = {

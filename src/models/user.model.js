@@ -49,10 +49,21 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+<<<<<<< HEAD
     // Thêm trường này để lưu trữ các đơn ứng tuyển của người dùng
     applications: [
         { type: mongoose.Schema.Types.ObjectId, ref: "Application" },
     ],
+=======
+    banReason: {
+        type: String,
+        default: null,
+    },
+    banAt: {
+        type: Date,
+        default: null,
+    },
+>>>>>>> Feat/BanAccount
 });
 
 // Điều chỉnh validate cho password: chỉ yêu cầu nếu không có googleId

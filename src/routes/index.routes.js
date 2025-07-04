@@ -4,7 +4,7 @@ import userRoutes from "./user.routes.js";
 import companyRoutes from "./company.routes.js";
 import forgotPasswordRoutes from "./forgotPassword.routes.js";
 import profileRoutes from "./profile.routes.js";
-import jobRoutes from "./jobs.routes.js";
+import banRoutes from "./ban.routes.js";
 import categoryRoutes from "./category.routes.js";
 import cvProfileRoutes from "./cvProfile.routes.js";
 import applicationRoutes from "./application.routes.js";
@@ -15,10 +15,13 @@ import searchJobRoutes from "./searchJob.routes.js";
 import favoriteJobRoutes from "./favoriteJob.routes.js";
 
 router.use("/auth", authRoutes);
-router.use("/user", userRoutes);
+router.use("/users", userRoutes);
+router.use("/users/status", banRoutes);
 router.use("/company", companyRoutes);
 router.use("/forgot-password", forgotPasswordRoutes);
 router.use("/profile", profileRoutes);
+router.use("/admin/profile", profileRoutes);
+router.use("/category", categoryRoutes);
 
 // đây là route lấy danh sách jobs hiển thị
 router.use("/jobs", jobRoutes);
