@@ -6,6 +6,7 @@ import {
     getJobByCompanyId,
     getJobs,
     getJobsByUserId,
+    getLimit,
     getListApplicant,
     updateJobByJobId,
 } from "../service/jobs.service.js";
@@ -110,6 +111,15 @@ export const getJobsByCompany = async (req, res) => {
 export const getJobByJobId = async (req, res) => {
     const { jobId } = req.params;
     const result = await getJobByJobId(jobId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const getJobLimitationByUserId = async (req, res) => {
+    const userId = req.user.id;
+    const result = await getLimit(userId);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

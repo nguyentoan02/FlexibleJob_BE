@@ -4,6 +4,7 @@ import {
     getAllJob,
     getJobByCompany,
     getJobByJobId,
+    getJobLimitationByUserId,
     getJobsByCompany,
     handleExpireJob,
     updateJob,
@@ -11,14 +12,16 @@ import {
     viewListApplicant,
 } from "../controllers/jobs.controller.js";
 import auth from "../middlewares/auth.middleware.js";
-import { isCompany } from "../middlewares/job.middleware.js";
+import { isCompany, isJobLimit } from "../middlewares/job.middleware.js";
 import { isRole } from "../middlewares/role.middleware.js";
 
 const router = express.Router();
 
 router.get("/", auth, isRole("ADMIN"), getAllJob);
 
-router.post("/createJob", auth, isCompany, createJob);
+router.get("/limit", auth, isRole("EMPLOYER"), getJobLimitationByUserId);
+
+router.post("/createJob", auth, isCompany, isJobLimit, createJob);
 
 router.post("/expireJob/:jobId", handleExpireJob);
 

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import CompanyProfile from "../models/companyprofile.model.js";
+import LimitJobs from "../models/limitJobs.model.js";
 
 const dataResponse = (code, message, payload) => {
     return {
@@ -69,6 +70,7 @@ export const updateCompanyProfile = async (userId, data) => {
 export const createCompany = async (data) => {
     try {
         const result = await CompanyProfile.create(data);
+        await LimitJobs.create({ company: result._id });
         return dataResponse(200, "create success", result);
     } catch (err) {
         return dataResponse(500, err.message, null);
@@ -83,4 +85,12 @@ export const getCompanyByUserId = async (userId) => {
         return dataResponse(404, "can not find this company profile", null);
     }
     return dataResponse(200, "found company profile", company);
+};
+
+export const companyApprove = async (userId) => {
+    const isApproved = await CompanyProfile.findOne({
+        user: userId,
+    }).select("isApproved");
+    console.log(isApproved);
+    return dataResponse(200, "found", isApproved);
 };

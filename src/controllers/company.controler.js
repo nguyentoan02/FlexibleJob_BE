@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import {
+    companyApprove,
     createCompany,
     getCompanyByUserId,
     getCompanyProfile,
@@ -25,6 +26,7 @@ export const updateCompany = async (req, res) => {
             imageUrl: null,
             coverImage: null,
             albumImage: [],
+            identityImage: [],
         };
 
         // Ensure removeImages is always an array
@@ -59,6 +61,16 @@ export const updateCompany = async (req, res) => {
             }
         }
 
+        if (req.files.identityImage) {
+            for (const file of req.files.identityImage) {
+                const uploaded = await uploadToCloudinary(
+                    file.buffer,
+                    "Company_identityImage"
+                );
+                result.identityImage.push(uploaded.secure_url);
+            }
+        }
+
         const cleanedImages = removeEmptyFields(result);
         const profileData = {
             ...req.body,
@@ -66,8 +78,7 @@ export const updateCompany = async (req, res) => {
             removeImages: imagesToRemove,
         };
 
-        console.log("Request body:", req.body);
-        console.log("Request files:", req.files);
+        console.log("profile data:", profileData);
 
         delete profileData._id;
         delete profileData.user;
@@ -123,7 +134,7 @@ export const createCompanyProfile = async (req, res) => {
     }
 
     if (req.files.identityImage) {
-        for (const file of req.files.albumImage) {
+        for (const file of req.files.identityImage) {
             const uploaded = await uploadToCloudinary(
                 file.buffer,
                 "Company_identityImage"
@@ -148,6 +159,16 @@ export const createCompanyProfile = async (req, res) => {
 export const getMyCompany = async (req, res) => {
     const userId = req.user.id;
     const result = await getCompanyByUserId(userId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const isCompanyApproved = async (req, res) => {
+    const userId = req.user.id;
+    console.log(userId);
+    const result = await companyApprove(userId);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

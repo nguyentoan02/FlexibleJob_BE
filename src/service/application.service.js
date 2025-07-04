@@ -1,7 +1,7 @@
 import Application from "../models/application.model.js";
 import Job from "../models/jobs.model.js";
 import User from "../models/user.model.js";
-import CvProfile from "../models/cvprofile.model.js"; // Đảm bảo import đúng tên file
+import CvProfile from "../models/cvProfile.model.js"; // Đảm bảo import đúng tên file
 
 // Hàm hỗ trợ định dạng response
 const dataResponse = (code, message, payload) => {
@@ -118,5 +118,27 @@ export const getMyApplications = async (userId) => {
     } catch (error) {
         console.error("Error in getMyApplications service:", error);
         return dataResponse(500, `Server error: ${error.message}`, null);
+    }
+};
+
+export const changeStatus = async (appId, action) => {
+    try {
+        // If appId is an object, extract the actual id string
+        const id =
+            typeof appId === "object" && appId.applicationId
+                ? appId.applicationId
+                : appId;
+        const app = await Application.findByIdAndUpdate(
+            id,
+            { status: action },
+            { new: true }
+        );
+        if (!app) {
+            return dataResponse(404, "can not find this application", null);
+        }
+        return dataResponse(200, "success", app);
+    } catch (error) {
+        console.log(error.message);
+        return dataResponse(500, error.message, null);
     }
 };
