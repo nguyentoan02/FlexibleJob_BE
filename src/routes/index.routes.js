@@ -6,8 +6,13 @@ import forgotPasswordRoutes from "./forgotPassword.routes.js";
 import profileRoutes from "./profile.routes.js";
 import banRoutes from "./ban.routes.js";
 import categoryRoutes from "./category.routes.js";
+<<<<<<< HEAD
 import cvProfileRoutes from "./cvProfile.routes.js";
 import applicationRoutes from "./application.routes.js";
+=======
+import packageRoutes from "./package.routes.js";
+
+>>>>>>> Feat/PackageAdmin
 const router = express.Router();
 
 import jobRoute from "./jobs.route.js";
@@ -22,6 +27,7 @@ router.use("/forgot-password", forgotPasswordRoutes);
 router.use("/profile", profileRoutes);
 router.use("/admin/profile", profileRoutes);
 router.use("/category", categoryRoutes);
+router.use("/packages", packageRoutes);
 
 // đây là route lấy danh sách jobs hiển thị
 router.use("/jobs", jobRoutes);
