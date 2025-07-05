@@ -6,13 +6,11 @@ import forgotPasswordRoutes from "./forgotPassword.routes.js";
 import profileRoutes from "./profile.routes.js";
 import banRoutes from "./ban.routes.js";
 import categoryRoutes from "./category.routes.js";
-<<<<<<< HEAD
 import cvProfileRoutes from "./cvProfile.routes.js";
 import applicationRoutes from "./application.routes.js";
-=======
 import packageRoutes from "./package.routes.js";
+import jobRoutes from "./jobs.routes.js";
 
->>>>>>> Feat/PackageAdmin
 const router = express.Router();
 
 import jobRoute from "./jobs.route.js";
