@@ -10,6 +10,7 @@ import cvProfileRoutes from "./cvProfile.routes.js";
 import applicationRoutes from "./application.routes.js";
 import packageRoutes from "./package.routes.js";
 import jobRoutes from "./jobs.routes.js";
+import companyApplicationRoutes from "./companyApplication.routes.js";
 
 const router = express.Router();
 
@@ -26,6 +27,7 @@ router.use("/profile", profileRoutes);
 router.use("/admin/profile", profileRoutes);
 router.use("/category", categoryRoutes);
 router.use("/packages", packageRoutes);
+router.use("/companyApplication", companyApplicationRoutes);
 
 // đây là route lấy danh sách jobs hiển thị
 router.use("/jobs", jobRoutes);
