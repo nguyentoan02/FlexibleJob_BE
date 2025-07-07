@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { secret, expiresIn } from "../config/jwt.js";
 import { generateToken, hashPassword, sendEmail } from "../utils/auth.util.js";
 import Token from "../models/token.model.js";
+import CompanyProfile from "../models/companyprofile.model.js";
 
 const dataResponse = (code, message, payload) => {
     return {
@@ -19,13 +20,20 @@ export const createAccount = async (email, hashedPassword, role) => {
         if (exists) {
             return dataResponse(400, "email already in use", null);
         }
-        const user = new User({ 
-            email, 
-            password: hashedPassword, 
+        const user = new User({
+            email,
+            password: hashedPassword,
             role,
-            isBanned: false
+            isBanned: false,
         });
         await user.save();
+
+        if (role === "EMPLOYER") {
+            const newCompanyProfile = new CompanyProfile({
+                user: user._id,
+            });
+            await newCompanyProfile.save();
+        }
         return dataResponse(200, "create account successfully", user);
     } catch (err) {
         return dataResponse(500, `server error - message: ${err}`, null);
@@ -41,7 +49,11 @@ export const loginAccount = async (email, password) => {
 
     // Check if user is banned
     if (user.isBanned) {
-        return dataResponse(403, "Your account has been banned. Please contact administrator for more information.", null);
+        return dataResponse(
+            403,
+            "Your account has been banned. Please contact administrator for more information.",
+            null
+        );
     }
 
     const token = jwt.sign(

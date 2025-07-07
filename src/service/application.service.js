@@ -121,7 +121,7 @@ export const getMyApplications = async (userId) => {
     }
 };
 
-export const changeStatus = async (appId, action) => {
+export const changeStatus = async (appId, action, note) => {
     try {
         // If appId is an object, extract the actual id string
         const id =
@@ -130,7 +130,7 @@ export const changeStatus = async (appId, action) => {
                 : appId;
         const app = await Application.findByIdAndUpdate(
             id,
-            { status: action },
+            { status: action, noted: note },
             { new: true }
         );
         if (!app) {

@@ -94,3 +94,35 @@ export const companyApprove = async (userId) => {
     console.log(isApproved);
     return dataResponse(200, "found", isApproved);
 };
+
+export const getPendingCompanies = async () => {
+    try {
+        const pendingCompanies = await CompanyProfile.find({ isApproved: false }).populate(
+            "user",
+            "email role"
+        );
+        return dataResponse(
+            200,
+            "Successfully retrieved pending companies",
+            pendingCompanies
+        );
+    } catch (err) {
+        return dataResponse(500, err.message, null);
+    }
+};
+
+export const updateCompanyApproval = async (companyId, isApproved) => {
+    try {
+        const updatedCompany = await CompanyProfile.findByIdAndUpdate(
+            companyId,
+            { isApproved: isApproved },
+            { new: true }
+        );
+        if (!updatedCompany) {
+            return dataResponse(404, "Company not found", null);
+        }
+        return dataResponse(200, "Company approval status updated", updatedCompany);
+    } catch (err) {
+        return dataResponse(500, err.message, null);
+    }
+};
