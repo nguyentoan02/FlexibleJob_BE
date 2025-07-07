@@ -20,9 +20,8 @@ const PaymentSchema = new mongoose.Schema({
         default: Date.now,
     },
     status: {
-        type: String, // Trạng thái thanh toán
-        enum: ["SUCCESS", "FAILED", "PENDING"],
-        default: "PENDING",
+        type: String,
+        default: "SUCCESS",
     },
     paymentMethod: {
         type: String,
