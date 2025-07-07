@@ -1,8 +1,9 @@
 import express from "express";
 import {
-    createCompanyProfile,
+    approveCompanyById,
     getCompanyById,
     getMyCompany,
+    getPendingCompaniesForAdmin,
     isCompanyApproved,
     updateCompany,
 } from "../controllers/company.controler.js";
@@ -16,24 +17,23 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
 
-router.get("/myCompany", auth, isRole("EMPLOYER"), getMyCompany); //get My own company dumami
-router.get("/isCompanyApproved", auth, isRole("EMPLOYER"), isCompanyApproved);
-
-router.get("/:companyId", getCompanyById); //Jobseeker get company via companyId
-router.post(
-    "/",
+// Admin routes
+router.get(
+    "/admin/pending-approvals",
     auth,
-    isRole("EMPLOYER"),
-    // isApproved, tao vẫn chưa hiểu cái củ địt này lắm ....
-    upload.fields([
-        { name: "imageUrl", maxCount: 1 },
-        { name: "coverImage", maxCount: 1 },
-        { name: "albumImage", maxCount: 10 },
-        { name: "identityImage", maxCount: 10 },
-    ]),
-    createCompanyProfile
+    isRole("ADMIN"),
+    getPendingCompaniesForAdmin
+);
+router.patch(
+    "/admin/approve/:companyId",
+    auth,
+    isRole("ADMIN"),
+    approveCompanyById
 );
 
+// Employer routes
+router.get("/myCompany", auth, isRole("EMPLOYER"), getMyCompany);
+router.get("/isCompanyApproved", auth, isRole("EMPLOYER"), isCompanyApproved);
 router.put(
     "/",
     auth,
@@ -46,12 +46,14 @@ router.put(
     ]),
     updateCompany
 );
-
 router.get(
     "/:cvProfileId/details",
     auth,
     isRole("EMPLOYER"),
     fetchCvProfileWithUserDetails
 );
+
+// Public routes
+router.get("/:companyId", getCompanyById);
 
 export default router;

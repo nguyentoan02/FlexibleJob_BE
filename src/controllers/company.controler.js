@@ -165,6 +165,26 @@ export const getMyCompany = async (req, res) => {
     });
 };
 
+import { getPendingCompanies, updateCompanyApproval } from "../service/company.service.js";
+
+export const getPendingCompaniesForAdmin = async (req, res) => {
+    const result = await getPendingCompanies();
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const approveCompanyById = async (req, res) => {
+    const { companyId } = req.params;
+    const { isApproved } = req.body;
+    const result = await updateCompanyApproval(companyId, isApproved);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
 export const isCompanyApproved = async (req, res) => {
     const userId = req.user.id;
     console.log(userId);

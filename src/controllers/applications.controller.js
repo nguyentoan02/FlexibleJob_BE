@@ -36,7 +36,9 @@ export const getMyApplicationsList = async (req, res) => {
 export const changeApplicationStatus = async (req, res) => {
     const applicationId = req.params;
     const action = req.query.action;
-    const result = await changeStatus(applicationId, action);
+    const { note } = req.body;
+    console.log(note);
+    const result = await changeStatus(applicationId, action, note);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,
