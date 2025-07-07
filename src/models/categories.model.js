@@ -3,6 +3,6 @@ const CategorySchema = new mongoose.Schema({
     categoryName: String,
 });
 
-const Category = mongoose.model("CompanyProfile", CompanyProfileSchema);
+const Category = mongoose.model("Categories", CategorySchema);
 
 export default Category;
