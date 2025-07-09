@@ -3,6 +3,7 @@ import {
     applyForJob,
     changeStatus,
     getMyApplications,
+    analyzeApplicantsForJob,
 } from "../service/application.service.js"; // Chỉ import hàm applyForJob
 
 const handleResponse = (res, serviceResponse) => {
@@ -43,4 +44,10 @@ export const changeApplicationStatus = async (req, res) => {
         message: result.message,
         payload: result.payload,
     });
+};
+
+export const getApplicantAnalysis = async (req, res) => {
+    const { jobId } = req.params;
+    const response = await analyzeApplicantsForJob(jobId);
+    handleResponse(res, response);
 };
