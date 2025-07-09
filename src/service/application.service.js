@@ -67,7 +67,7 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
 
         await newApplication.save();
 
-        scoreApplicationInBackground(newApplication._id);
+        await scoreApplicationInBackground(newApplication._id);
 
         user.applications.push(newApplication._id);
         await user.save();
