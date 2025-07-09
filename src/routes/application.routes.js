@@ -5,6 +5,7 @@ import {
     applyToJob,
     changeApplicationStatus,
     getMyApplicationsList,
+    getApplicantAnalysis,
 } from "../controllers/applications.controller.js";
 
 const router = express.Router();
@@ -26,5 +27,7 @@ router.patch(
     isRole("EMPLOYER"),
     changeApplicationStatus
 );
+
+router.get("/analyze/:jobId", auth, isRole("EMPLOYER"), getApplicantAnalysis);
 
 export default router;

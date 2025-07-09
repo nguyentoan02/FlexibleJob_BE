@@ -27,15 +27,15 @@ export const createMyCvProfile = async (req, res) => {
     const pdfFile = req.file;
 
     // Validation file PDF (đã có, giữ nguyên)
-    if (!pdfFile) {
-        return res.status(400).json({ message: "No PDF file uploaded." });
-    }
-    console.log("MIME type received for PDF upload:", pdfFile.mimetype);
-    if (pdfFile.mimetype !== "application/pdf") {
-        return res
-            .status(400)
-            .json({ message: "Only PDF files are allowed for CV Profile." });
-    }
+    // if (!pdfFile) {
+    //     return res.status(400).json({ message: "No PDF file uploaded." });
+    // }
+    // console.log("MIME type received for PDF upload:", pdfFile.mimetype);
+    // if (pdfFile.mimetype !== "application/pdf") {
+    //     return res
+    //         .status(400)
+    //         .json({ message: "Only PDF files are allowed for CV Profile." });
+    // }
 
     try {
         // **Gọi hàm service đã đổi tên**

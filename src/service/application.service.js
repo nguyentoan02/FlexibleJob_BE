@@ -2,6 +2,10 @@ import Application from "../models/application.model.js";
 import Job from "../models/jobs.model.js";
 import User from "../models/user.model.js";
 import CvProfile from "../models/cvProfile.model.js"; // Đảm bảo import đúng tên file
+import {
+    getMatchScoreFromAI,
+    getComparativeAnalysisFromAI,
+} from "./openai.service.js";
 
 // Hàm hỗ trợ định dạng response
 const dataResponse = (code, message, payload) => {
@@ -62,6 +66,9 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
         });
 
         await newApplication.save();
+
+        scoreApplicationInBackground(newApplication._id);
+
         user.applications.push(newApplication._id);
         await user.save();
         job.applicants.push(newApplication._id);
@@ -140,5 +147,112 @@ export const changeStatus = async (appId, action, note) => {
     } catch (error) {
         console.log(error.message);
         return dataResponse(500, error.message, null);
+    }
+};
+
+const scoreApplicationInBackground = async (applicationId) => {
+    try {
+        const application = await Application.findById(applicationId);
+        if (!application) {
+            console.log(
+                `Scoring failed: Application ${applicationId} not found.`
+            );
+            return;
+        }
+
+        const job = await Job.findById(application.job);
+        const cv = application.cvSnapshot;
+
+        if (!job || !cv) {
+            console.log(
+                `Scoring failed: Job or CV data missing for application ${applicationId}.`
+            );
+            return;
+        }
+
+        const jobDescriptionText = `Job Title: ${job.title}. Salary: ${
+            job.salary
+        }. Location: ${
+            job.location
+        }. Skills required: ${job.skillsRequired.join(", ")}. Description: ${
+            job.description
+        }.`;
+        const cvContentText = `Candidate's Skills: ${cv.skills.join(
+            ", "
+        )}. Experience: ${cv.experience
+            .map((e) => `${e.title} at ${e.company} - ${e.description}`)
+            .join(". ")}. Education: ${cv.education
+            .map((e) => `${e.degree} at ${e.school}`)
+            .join(". ")}.`;
+
+        const aiResult = await getMatchScoreFromAI(
+            jobDescriptionText,
+            cvContentText
+        );
+
+        if (aiResult && aiResult.score) {
+            application.matchScore = aiResult.score;
+            application.scoreJustification = aiResult.justification;
+            await application.save();
+            console.log(
+                `Successfully scored application ${applicationId} with score: ${aiResult.score}`
+            );
+        } else {
+            console.log(
+                `AI did not return a valid score for application ${applicationId}.`
+            );
+        }
+    } catch (error) {
+        console.error(
+            `❌ Failed to score application ${applicationId}:`,
+            error
+        );
+    }
+};
+
+export const analyzeApplicantsForJob = async (jobId) => {
+    try {
+        const job = await Job.findById(jobId);
+        if (!job) {
+            return dataResponse(404, "Job not found", null);
+        }
+
+        const applications = await Application.find({
+            job: jobId,
+            matchScore: { $ne: null },
+        })
+            .sort({ matchScore: -1 })
+            .limit(10);
+
+        if (applications.length < 2) {
+            return dataResponse(
+                400,
+                "Not enough scored applicants to compare.",
+                null
+            );
+        }
+
+        const applicantsData = applications
+            .map(
+                (app) =>
+                    `Applicant ID: ${app._id}, Score: ${app.matchScore}, Justification: ${app.scoreJustification}`
+            )
+            .join("\n\n");
+
+        const jobDescriptionText = `Job Title: ${job.title}. Description: ${job.description}.`;
+
+        const analysisResult = await getComparativeAnalysisFromAI(
+            jobDescriptionText,
+            applicantsData
+        );
+
+        if (!analysisResult) {
+            return dataResponse(500, "Failed to get analysis from AI.", null);
+        }
+
+        return dataResponse(200, "Analysis successful", analysisResult);
+    } catch (error) {
+        console.error("Error in analyzeApplicantsForJob service:", error);
+        return dataResponse(500, `Server error: ${error.message}`, null);
     }
 };

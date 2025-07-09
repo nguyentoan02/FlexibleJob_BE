@@ -5,6 +5,7 @@ import { secret, expiresIn } from "../config/jwt.js";
 import { generateToken, hashPassword, sendEmail } from "../utils/auth.util.js";
 import Token from "../models/token.model.js";
 import CompanyProfile from "../models/companyprofile.model.js";
+import LimitJobs from "../models/limitJobs.model.js";
 
 const dataResponse = (code, message, payload) => {
     return {
@@ -33,6 +34,10 @@ export const createAccount = async (email, hashedPassword, role) => {
                 user: user._id,
             });
             await newCompanyProfile.save();
+            const newJobLimit = new LimitJobs({
+                company: newCompanyProfile._id,
+            });
+            await newJobLimit.save();
         }
         return dataResponse(200, "create account successfully", user);
     } catch (err) {
