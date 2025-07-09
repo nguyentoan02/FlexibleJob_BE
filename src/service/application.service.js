@@ -172,11 +172,9 @@ const scoreApplicationInBackground = async (applicationId) => {
 
         const jobDescriptionText = `Job Title: ${job.title}. Salary: ${
             job.salary
-        }. Location: ${
-            job.location
-        }. Skills required: ${job.skillsRequired.join(", ")}. Description: ${
-            job.description
-        }.`;
+        }. Location: ${job.location}. Skills required: ${job.requirements.join(
+            ", "
+        )}. Description: ${job.description}.`;
         const cvContentText = `Candidate's Skills: ${cv.skills.join(
             ", "
         )}. Experience: ${cv.experience
@@ -221,6 +219,10 @@ export const analyzeApplicantsForJob = async (jobId) => {
             job: jobId,
             matchScore: { $ne: null },
         })
+            .populate({
+                path: "user",
+                select: "firstName lastName imageUrl",
+            })
             .sort({ matchScore: -1 })
             .limit(10);
 
@@ -235,7 +237,9 @@ export const analyzeApplicantsForJob = async (jobId) => {
         const applicantsData = applications
             .map(
                 (app) =>
-                    `Applicant ID: ${app._id}, Score: ${app.matchScore}, Justification: ${app.scoreJustification}`
+                    `Applicant ID: ${app._id}, Score: ${app.matchScore},
+                    firstName:${app.user.firstName}, lastName:${app.user.lastName}, image:${app.user.imageUrl},
+                Justification: ${app.scoreJustification}`
             )
             .join("\n\n");
 

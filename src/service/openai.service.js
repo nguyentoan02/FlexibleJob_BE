@@ -53,7 +53,7 @@ export const getComparativeAnalysisFromAI = async (
             Dựa vào các thông tin trên, hãy so sánh và đưa ra một bảng xếp hạng (Ranking) từ 1 đến hết.
             Với mỗi người trong top 3, hãy đưa ra một lý do NGẮN GỌN vì sao bạn xếp họ ở vị trí đó.
             Hãy trả lời bằng một đối tượng JSON hợp lệ có cấu trúc: 
-            {"ranking": [{"applicantId": "<string>", "rank": <number>, "reason": "<string>"}]}
+            {"ranking": [{"applicantId": "<string>", "rank": <number>, "reason": "<string>","firstName": "<string>","lastName": "<string>","imageUrl":"<string>"}]}
         `;
 
         const response = await openai.chat.completions.create({
