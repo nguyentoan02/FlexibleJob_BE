@@ -11,6 +11,7 @@ import applicationRoutes from "./application.routes.js";
 import packageRoutes from "./package.routes.js";
 import jobRoutes from "./jobs.routes.js";
 import companyApplicationRoutes from "./companyApplication.routes.js";
+import paymentRoutes from "./payment.routes.js";
 
 const router = express.Router();
 
@@ -38,4 +39,5 @@ router.use("/manageJobs", jobRoute);
 router.use("/category", categoryRoutes);
 router.use("/cv-profiles", cvProfileRoutes); // Thêm CV Profile routes
 router.use("/applications", applicationRoutes);
+router.use("/payments", paymentRoutes);
 export default router;
