@@ -5,6 +5,8 @@ import {
     getMyCompany,
     getPendingCompaniesForAdmin,
     isCompanyApproved,
+    statsInVoice,
+    statsJob,
     updateCompany,
 } from "../controllers/company.controler.js";
 import multer from "multer";
@@ -52,6 +54,10 @@ router.get(
     isRole("EMPLOYER"),
     fetchCvProfileWithUserDetails
 );
+
+router.get("/stats/job", auth, statsJob);
+
+router.get("/stats/invoices", auth, statsInVoice);
 
 // Public routes
 router.get("/:companyId", getCompanyById);

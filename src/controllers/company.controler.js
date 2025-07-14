@@ -2,8 +2,10 @@ import mongoose from "mongoose";
 import {
     companyApprove,
     createCompany,
+    getAllInVoices,
     getCompanyByUserId,
     getCompanyProfile,
+    getJobStats,
     updateCompanyProfile,
 } from "../service/company.service.js";
 import { uploadToCloudinary } from "../utils/cloudinary.util.js";
@@ -165,7 +167,10 @@ export const getMyCompany = async (req, res) => {
     });
 };
 
-import { getPendingCompanies, updateCompanyApproval } from "../service/company.service.js";
+import {
+    getPendingCompanies,
+    updateCompanyApproval,
+} from "../service/company.service.js";
 
 export const getPendingCompaniesForAdmin = async (req, res) => {
     const result = await getPendingCompanies();
@@ -189,6 +194,24 @@ export const isCompanyApproved = async (req, res) => {
     const userId = req.user.id;
     console.log(userId);
     const result = await companyApprove(userId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const statsJob = async (req, res) => {
+    const userId = req.user.id;
+    const result = await getJobStats(userId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const statsInVoice = async (req, res) => {
+    const userId = req.user.id;
+    const result = await getAllInVoices(userId);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

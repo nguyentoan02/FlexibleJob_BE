@@ -1,6 +1,7 @@
 import payos from "../config/payos.js";
 import Package from "../models/package.model.js";
 import Payment from "../models/payment.model.js";
+import User from "../models/user.model.js";
 
 export const create = async (userId, packageId) => {
     const pkg = await Package.findById(packageId);
@@ -13,8 +14,8 @@ export const create = async (userId, packageId) => {
         orderCode,
         amount: pkg.price,
         description: `package: ${pkg.name}`,
-        returnUrl: `${process.env.FRONTEND_URL}/company/dashboard/success`,
-        cancelUrl: `${process.env.FRONTEND_URL}/company/dashboard/cancel`,
+        returnUrl: `${process.env.FRONTEND_URL}/company/dashboard/payment/success`,
+        cancelUrl: `${process.env.FRONTEND_URL}/company/dashboard/payment/cancel`,
     };
 
     const paymentLink = await payos.createPaymentLink(paymentData);
