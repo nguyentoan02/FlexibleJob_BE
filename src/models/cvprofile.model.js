@@ -1,39 +1,16 @@
 import mongoose from "mongoose";
-
 const CVProfileSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     skills: [String],
-    education: [
-        {
-            school: String,
-            degree: String,
-            fieldOfStudy: String,
-            startDate: Date,
-            endDate: Date,
-            description: String,
-        },
-    ],
-    experience: [
-        {
-            company: String,
-            position: String,
-            startDate: Date,
-            endDate: Date,
-            description: String,
-            location: String,
-        },
-    ],
-
+    experience: String,
     description: String,
-
+    education: String,
     certifications: String,
     linkUrl: String,
     number: String,
     avatar: String,
 });
 
-// Kiểm tra xem model đã tồn tại chưa
-const CvProfile =
-    mongoose.models.CvProfile || mongoose.model("CvProfile", CVProfileSchema);
+const CvProfile = mongoose.model("CvProfile", CVProfileSchema);
 
 export default CvProfile;
