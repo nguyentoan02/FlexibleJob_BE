@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import CompanyProfile from "../models/companyprofile.model.js";
 import LimitJobs from "../models/limitJobs.model.js";
+import Job from "../models/jobs.model.js";
+import Application from "../models/application.model.js";
+import Payment from "../models/payment.model.js";
 
 const dataResponse = (code, message, payload) => {
     return {
@@ -97,10 +100,9 @@ export const companyApprove = async (userId) => {
 
 export const getPendingCompanies = async () => {
     try {
-        const pendingCompanies = await CompanyProfile.find({ isApproved: false }).populate(
-            "user",
-            "email role"
-        );
+        const pendingCompanies = await CompanyProfile.find({
+            isApproved: false,
+        }).populate("user", "email role");
         return dataResponse(
             200,
             "Successfully retrieved pending companies",
@@ -121,8 +123,46 @@ export const updateCompanyApproval = async (companyId, isApproved) => {
         if (!updatedCompany) {
             return dataResponse(404, "Company not found", null);
         }
-        return dataResponse(200, "Company approval status updated", updatedCompany);
+        return dataResponse(
+            200,
+            "Company approval status updated",
+            updatedCompany
+        );
     } catch (err) {
         return dataResponse(500, err.message, null);
     }
+};
+
+export const getJobStats = async (userId) => {
+    const companyId = await CompanyProfile.exists({ user: userId });
+    if (!companyId) {
+        return dataResponse(404, "not found this company", null);
+    }
+    const totalJob = await Job.find({ company: companyId });
+    const jobIds = totalJob.map((job) => job._id);
+    const totalApp = await Application.find({
+        job: { $in: jobIds },
+    }).countDocuments();
+    const totalAppAccept = await Application.find({
+        job: { $in: jobIds },
+        status: "HIRED",
+    }).countDocuments();
+    const totalAppApplied = await Application.find({
+        job: { $in: jobIds },
+        status: "APPLIED",
+    }).countDocuments();
+    return dataResponse(200, "success", {
+        totalJob: jobIds.length,
+        totalApp: totalApp,
+        totalAppAccept: totalAppAccept,
+        totalAppApplied: totalAppApplied,
+    });
+};
+
+export const getAllInVoices = async (userId) => {
+    const invoiceList = await Payment.find({ userId: userId }).populate({
+        path: "packageId",
+        select: "name",
+    });
+    return dataResponse(200, "success", invoiceList);
 };

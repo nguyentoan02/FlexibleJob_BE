@@ -1,37 +1,39 @@
 import mongoose from "mongoose";
 
-const PaymentSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+const paymentSchema = new mongoose.Schema(
+    {
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+        packageId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Package",
+            required: true,
+        },
+        orderCode: {
+            type: Number,
+            required: true,
+            unique: true,
+        },
+        amount: {
+            type: Number,
+            required: true,
+        },
+        status: {
+            type: String,
+            enum: ["PENDING", "SUCCESS", "FAILED", "CANCELLED"],
+            default: "PENDING",
+        },
+        transactionId: {
+            // To store PayOS transaction ID
+            type: String,
+        },
     },
-    package: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Package", // Gói đã mua
-        required: true,
-    },
-    amount: {
-        type: Number, // Số tiền thanh toán
-        required: true,
-    },
-    paymentDate: {
-        type: Date,
-        default: Date.now,
-    },
-    status: {
-        type: String,
-        default: "SUCCESS",
-    },
-    paymentMethod: {
-        type: String,
-        default: "PAYOS",
-    },
-    transactionId: {
-        type: String, // ID giao dịch từ PayOS
-    },
-});
+    { timestamps: true }
+);
 
-const Payment = mongoose.model("Payment", PaymentSchema);
+const Payment = mongoose.model("Payment", paymentSchema);
 
 export default Payment;
