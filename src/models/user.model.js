@@ -61,6 +61,10 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+    isVerified: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 // Điều chỉnh validate cho password: chỉ yêu cầu nếu không có googleId

@@ -84,30 +84,34 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
 export const getMyApplications = async (userId) => {
     try {
         const applications = await Application.find({ user: userId })
-            .populate("job", "title company")
-            .populate({
-                path: "cv",
-                model: "CvProfile",
-                select: "linkUrl",
-            })
             .populate({
                 path: "job",
+                select: "title company",
                 populate: {
                     path: "company",
                     select: "companyName location",
                 },
             })
+            .populate({
+                path: "cv",
+                model: "CvProfile",
+                select: "linkUrl skills education experience certifications",
+            })
+            .populate({
+                path: "user",
+                select: "firstName lastName email imageUrl",
+            })
             .sort({ applicationDate: -1 })
-            .lean(); // <-- Thêm .lean() để trả về plain object
+            .lean(); // Return plain objects
 
         if (!applications || applications.length === 0) {
             return dataResponse(404, "No applications found", null);
         }
 
-        // Đảm bảo trả về cả cvSnapshot cho mỗi application
+        // Ensure the response includes cvSnapshot for each application
         const applicationsWithCvSnapshot = applications.map((app) => ({
             ...app,
-            cvSnapshot: app.cvSnapshot, // đã có sẵn trong document
+            cvSnapshot: app.cvSnapshot, // Already present in the document
         }));
 
         return dataResponse(
