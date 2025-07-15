@@ -8,6 +8,7 @@ import {
     newPassword,
     googleAuth,
     googleAuthCallback,
+    verifyEmailController,
 } from "../controllers/auth.controller.js";
 import passport from "passport";
 
@@ -18,6 +19,7 @@ router.post("/login", login);
 router.post("/resetPassword/", resetPassword);
 router.post("/updatePassword/:token", newPassword);
 router.get("/verifyToken/:token", verifyResetPasswordToken);
+router.get("/verify-email/:token", verifyEmailController);
 
 // Google OAuth routes
 router.get(
