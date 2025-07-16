@@ -166,3 +166,8 @@ export const getAllInVoices = async (userId) => {
     });
     return dataResponse(200, "success", invoiceList);
 };
+
+export const getAllCompany = async () => {
+    const companyList = await CompanyProfile.find();
+    return dataResponse(200, "success", companyList);
+};
