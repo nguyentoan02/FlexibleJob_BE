@@ -75,3 +75,27 @@ export const webHook = async (webhookData) => {
     await payment.save();
     return { success: true };
 };
+
+// Tính tổng doanh thu từ các payment thành công
+export const getTotalRevenue = async () => {
+    const result = await Payment.aggregate([
+        { $match: { status: "PENDING" } },
+        { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+    return result[0]?.total || 0;
+};
+
+// Lấy danh sách người dùng đã mua dịch vụ (payment thành công)
+export const getBuyersList = async () => {
+    // Lấy các payment thành công, populate user và package
+    const payments = await Payment.find({ status: "PENDING" })
+        .populate("userId", "firstName lastName email role")
+        .populate("packageId", "name price description");
+    // Trả về danh sách gồm user, package, amount, thời gian mua
+    return payments.map(payment => ({
+        user: payment.userId,
+        package: payment.packageId,
+        amount: payment.amount,
+        purchasedAt: payment.createdAt
+    }));
+};

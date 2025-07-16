@@ -7,7 +7,11 @@ import {
     getBannedUsers,
     getUserById,
     updateUserProfileById,
-    changePassword
+    changePassword,
+    getTotalUsersController,
+    getTotalEmployersController,
+    getTotalJobseekersController,
+    getTotalCompaniesController
 } from "../controllers/user.controller.js";
 import { checkUserId } from "../middlewares/user.middleware.js";
 
@@ -16,6 +20,12 @@ const router = express.Router();
 // User management routes (Admin only)
 router.get("/", auth, isRole("ADMIN"), getAllUsers);
 router.get("/banned", auth, isRole("ADMIN"), getBannedUsers);
+
+// Thống kê tổng số user, employer, jobseeker, công ty (chỉ ADMIN)
+router.get("/total-users", auth, isRole("ADMIN"), getTotalUsersController);
+router.get("/total-employers", auth, isRole("ADMIN"), getTotalEmployersController);
+router.get("/total-jobseekers", auth, isRole("ADMIN"), getTotalJobseekersController);
+router.get("/total-companies", auth, isRole("ADMIN"), getTotalCompaniesController);
 
 // User access routes
 router.get("/active", auth, getActiveUsers);
