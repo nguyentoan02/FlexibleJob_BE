@@ -8,6 +8,9 @@ import {
     statsInVoice,
     statsJob,
     updateCompany,
+    getApprovedCompaniesForAdmin,
+    getCompanyApprovalStatsController,
+    filterCompaniesController,
 } from "../controllers/company.controler.js";
 import multer from "multer";
 import auth from "../middlewares/auth.middleware.js";
@@ -31,6 +34,24 @@ router.patch(
     auth,
     isRole("ADMIN"),
     approveCompanyById
+);
+router.get(
+    "/admin/approved-companies",
+    auth,
+    isRole("ADMIN"),
+    getApprovedCompaniesForAdmin
+);
+router.get(
+    "/admin/company-approval-stats",
+    auth,
+    isRole("ADMIN"),
+    getCompanyApprovalStatsController
+);
+router.get(
+    "/admin/filter-companies",
+    auth,
+    isRole("ADMIN"),
+    filterCompaniesController
 );
 
 // Employer routes

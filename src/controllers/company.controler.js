@@ -7,6 +7,11 @@ import {
     getCompanyProfile,
     getJobStats,
     updateCompanyProfile,
+    getPendingCompanies,
+    updateCompanyApproval,
+    getApprovedCompanies,
+    getCompanyApprovalStats,
+    filterCompanies
 } from "../service/company.service.js";
 import { uploadToCloudinary } from "../utils/cloudinary.util.js";
 import { removeEmptyFields } from "../utils/handleArray.util.js";
@@ -167,11 +172,6 @@ export const getMyCompany = async (req, res) => {
     });
 };
 
-import {
-    getPendingCompanies,
-    updateCompanyApproval,
-} from "../service/company.service.js";
-
 export const getPendingCompaniesForAdmin = async (req, res) => {
     const result = await getPendingCompanies();
     res.status(result.code).json({
@@ -212,6 +212,31 @@ export const statsJob = async (req, res) => {
 export const statsInVoice = async (req, res) => {
     const userId = req.user.id;
     const result = await getAllInVoices(userId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const getApprovedCompaniesForAdmin = async (req, res) => {
+    const result = await getApprovedCompanies();
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const getCompanyApprovalStatsController = async (req, res) => {
+    const result = await getCompanyApprovalStats();
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const filterCompaniesController = async (req, res) => {
+    const { location, industry, companySize } = req.query;
+    const result = await filterCompanies(location, industry, companySize);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,
