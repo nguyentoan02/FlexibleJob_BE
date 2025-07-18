@@ -67,7 +67,7 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
 
         await newApplication.save();
 
-        await scoreApplicationInBackground(newApplication._id);
+        // await scoreApplicationInBackground(newApplication._id);
 
         user.applications.push(newApplication._id);
         await user.save();
@@ -154,63 +154,63 @@ export const changeStatus = async (appId, action, note) => {
     }
 };
 
-const scoreApplicationInBackground = async (applicationId) => {
-    try {
-        const application = await Application.findById(applicationId);
-        if (!application) {
-            console.log(
-                `Scoring failed: Application ${applicationId} not found.`
-            );
-            return;
-        }
+// const scoreApplicationInBackground = async (applicationId) => {
+//     try {
+//         const application = await Application.findById(applicationId);
+//         if (!application) {
+//             console.log(
+//                 `Scoring failed: Application ${applicationId} not found.`
+//             );
+//             return;
+//         }
 
-        const job = await Job.findById(application.job);
-        const cv = application.cvSnapshot;
+//         const job = await Job.findById(application.job);
+//         const cv = application.cvSnapshot;
 
-        if (!job || !cv) {
-            console.log(
-                `Scoring failed: Job or CV data missing for application ${applicationId}.`
-            );
-            return;
-        }
+//         if (!job || !cv) {
+//             console.log(
+//                 `Scoring failed: Job or CV data missing for application ${applicationId}.`
+//             );
+//             return;
+//         }
 
-        const jobDescriptionText = `Job Title: ${job.title}. Salary: ${
-            job.salary
-        }. Location: ${job.location}. Skills required: ${job.requirements.join(
-            ", "
-        )}. Description: ${job.description}.`;
-        const cvContentText = `Candidate's Skills: ${cv.skills.join(
-            ", "
-        )}. Experience: ${cv.experience
-            .map((e) => `${e.title} at ${e.company} - ${e.description}`)
-            .join(". ")}. Education: ${cv.education
-            .map((e) => `${e.degree} at ${e.school}`)
-            .join(". ")}.`;
+//         const jobDescriptionText = `Job Title: ${job.title}. Salary: ${
+//             job.salary
+//         }. Location: ${job.location}. Skills required: ${job.requirements.join(
+//             ", "
+//         )}. Description: ${job.description}.`;
+//         const cvContentText = `Candidate's Skills: ${cv.skills.join(
+//             ", "
+//         )}. Experience: ${cv.experience
+//             .map((e) => `${e.title} at ${e.company} - ${e.description}`)
+//             .join(". ")}. Education: ${cv.education
+//             .map((e) => `${e.degree} at ${e.school}`)
+//             .join(". ")}.`;
 
-        const aiResult = await getMatchScoreFromAI(
-            jobDescriptionText,
-            cvContentText
-        );
+//         const aiResult = await getMatchScoreFromAI(
+//             jobDescriptionText,
+//             cvContentText
+//         );
 
-        if (aiResult && aiResult.score) {
-            application.matchScore = aiResult.score;
-            application.scoreJustification = aiResult.justification;
-            await application.save();
-            console.log(
-                `Successfully scored application ${applicationId} with score: ${aiResult.score}`
-            );
-        } else {
-            console.log(
-                `AI did not return a valid score for application ${applicationId}.`
-            );
-        }
-    } catch (error) {
-        console.error(
-            `❌ Failed to score application ${applicationId}:`,
-            error
-        );
-    }
-};
+//         if (aiResult && aiResult.score) {
+//             application.matchScore = aiResult.score;
+//             application.scoreJustification = aiResult.justification;
+//             await application.save();
+//             console.log(
+//                 `Successfully scored application ${applicationId} with score: ${aiResult.score}`
+//             );
+//         } else {
+//             console.log(
+//                 `AI did not return a valid score for application ${applicationId}.`
+//             );
+//         }
+//     } catch (error) {
+//         console.error(
+//             `❌ Failed to score application ${applicationId}:`,
+//             error
+//         );
+//     }
+// };
 
 export const analyzeApplicantsForJob = async (jobId) => {
     try {
@@ -221,7 +221,6 @@ export const analyzeApplicantsForJob = async (jobId) => {
 
         const applications = await Application.find({
             job: jobId,
-            matchScore: { $ne: null },
         })
             .populate({
                 path: "user",
@@ -241,13 +240,13 @@ export const analyzeApplicantsForJob = async (jobId) => {
         const applicantsData = applications
             .map(
                 (app) =>
-                    `Applicant ID: ${app._id}, Score: ${app.matchScore},
-                    firstName:${app.user.firstName}, lastName:${app.user.lastName}, image:${app.user.imageUrl},
-                Justification: ${app.scoreJustification}`
+                    `Applicant ID: ${app._id},
+                    firstName:${app.user.firstName}, lastName:${app.user.lastName}, image:${app.user.imageUrl}, skill:${app.cvSnapshot.skills}, education: ${app.cvSnapshot.education}, experience: ${app.cvSnapshot.experience}, cvDescription: ${app.cvSnapshot.description}, certifications: ${app.cvSnapshot.certifications}
+                `
             )
             .join("\n\n");
 
-        const jobDescriptionText = `Job Title: ${job.title}. Description: ${job.description}.`;
+        const jobDescriptionText = `Job Title: ${job.title}. Description: ${job.description}. requirements: ${job.requirements}. Level: ${job.level}. Experience Years: ${job.experienceYears}`;
 
         const analysisResult = await getComparativeAnalysisFromAI(
             jobDescriptionText,
