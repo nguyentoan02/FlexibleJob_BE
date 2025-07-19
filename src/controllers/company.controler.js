@@ -2,8 +2,10 @@ import mongoose from "mongoose";
 import {
     companyApprove,
     createCompany,
+    getAllCompaniesWithJobs,
     getAllInVoices,
     getCompanyByUserId,
+    getCompanyDetailWithJobs,
     getCompanyProfile,
     getJobStats,
     updateCompanyProfile,
@@ -212,6 +214,23 @@ export const statsJob = async (req, res) => {
 export const statsInVoice = async (req, res) => {
     const userId = req.user.id;
     const result = await getAllInVoices(userId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const getAllCompaniesPublic = async (req, res) => {
+    const result = await getAllCompaniesWithJobs();
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const getCompanyDetailPublic = async (req, res) => {
+    const { companyId } = req.params;
+    const result = await getCompanyDetailWithJobs(companyId);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

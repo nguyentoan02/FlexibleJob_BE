@@ -8,6 +8,8 @@ import {
     statsInVoice,
     statsJob,
     updateCompany,
+    getAllCompaniesPublic,
+    getCompanyDetailPublic,
 } from "../controllers/company.controler.js";
 import multer from "multer";
 import auth from "../middlewares/auth.middleware.js";
@@ -60,6 +62,8 @@ router.get("/stats/job", auth, statsJob);
 router.get("/stats/invoices", auth, statsInVoice);
 
 // Public routes
+router.get("/public", getAllCompaniesPublic); // Lấy danh sách công ty + job
+router.get("/public/:companyId", getCompanyDetailPublic); // Lấy chi tiết công ty + job
 router.get("/:companyId", getCompanyById);
 
 export default router;

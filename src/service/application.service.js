@@ -109,26 +109,20 @@ export const getMyApplications = async (userId) => {
                 select: "firstName lastName email imageUrl",
             })
             .sort({ applicationDate: -1 })
-            .lean(); // Return plain objects
+            .lean();
 
-        if (!applications || applications.length === 0) {
-            return dataResponse(404, "No applications found", null);
-        }
-
-        // Ensure the response includes cvSnapshot for each application
-        const applicationsWithCvSnapshot = applications.map((app) => ({
-            ...app,
-            cvSnapshot: app.cvSnapshot, // Already present in the document
-        }));
-
+        // Luôn trả về mảng, không trả về 404
         return dataResponse(
             200,
             "Applications retrieved successfully",
-            applicationsWithCvSnapshot
+            applications.map((app) => ({
+                ...app,
+                cvSnapshot: app.cvSnapshot,
+            }))
         );
     } catch (error) {
         console.error("Error in getMyApplications service:", error);
-        return dataResponse(500, `Server error: ${error.message}`, null);
+        return dataResponse(500, `Server error: ${error.message}`, []);
     }
 };
 

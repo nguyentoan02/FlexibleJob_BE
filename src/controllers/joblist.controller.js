@@ -3,11 +3,13 @@ import {
     getJobDetail,
     reportJob,
     hideJob,
+    unhideJob,
 } from "../service/joblist.service.js";
+import { getJobseekerApplicationStats } from "../service/joblist.service.js";
 
 export const fetchJobList = async (req, res) => {
-    const { page = 1, limit = 10 } = req.query; // Lấy page và limit từ query params
-    const result = await getJobList(page, limit);
+    const { page = 1, limit = 10, isHidden } = req.query;
+    const result = await getJobList(page, limit, isHidden);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,
@@ -44,6 +46,33 @@ export const reportJobController = async (req, res) => {
 export const hideJobController = async (req, res) => {
     const { jobId } = req.params;
     const result = await hideJob(jobId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+// Admin hiện job
+export const unhideJobController = async (req, res) => {
+    const { jobId } = req.params;
+    const result = await unhideJob(jobId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const getJobseekerStats = async (req, res) => {
+    const userId = req.user.id;
+    const { period, startDate, endDate } = req.query; // Thêm dòng này
+
+    const result = await getJobseekerApplicationStats(
+        userId,
+        period,
+        startDate,
+        endDate
+    ); // Truyền đầy đủ tham số
+
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

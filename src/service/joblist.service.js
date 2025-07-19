@@ -1,5 +1,8 @@
 import Job from "../models/jobs.model.js";
 import Application from "../models/application.model.js";
+import User from "../models/user.model.js";
+import { sendEmail } from "../utils/auth.util.js";
+import mongoose from "mongoose";
 const dataResponse = (code, message, payload) => {
     return {
         code: code,
@@ -9,20 +12,29 @@ const dataResponse = (code, message, payload) => {
 };
 
 // Lấy danh sách job
-export const getJobList = async (page = 1, limit = 10) => {
+export const getJobList = async (page = 1, limit = 10, isHidden) => {
     try {
-        const jobs = await Job.find({ isExpired: false })
+        // Xây dựng filter động
+        const filter = { isExpired: false };
+        if (typeof isHidden !== "undefined") {
+            filter.isHidden = isHidden === "true";
+        } else {
+            filter.isHidden = { $ne: true };
+        }
+
+        const jobs = await Job.find(filter)
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .sort({ datePosted: -1 })
-            .populate("company", "companyName location imageUrl") // Include imageUrl
+            .populate("company", "companyName location imageUrl")
             .populate("category", "categoryName");
 
-        const totalJobs = await Job.countDocuments({ isExpired: false });
+        const totalJobs = await Job.countDocuments(filter);
         const payload = {
             jobs,
             totalPages: Math.ceil(totalJobs / limit),
             currentPage: page,
+            totalJobs,
         };
 
         return dataResponse(200, "Job list fetched successfully", payload);
@@ -56,7 +68,8 @@ export const getJobDetail = async (jobId, userId) => {
         const activeJobs = await Job.find({
             company: companyId,
             isExpired: false,
-            _id: { $ne: jobId }, // Exclude the current job
+            isHidden: { $ne: true },
+            _id: { $ne: jobId },
         }).limit(5); // Limit to a reasonable number
 
         const activeJobsCount = activeJobs.length;
@@ -108,13 +121,140 @@ export const hideJob = async (jobId) => {
             jobId,
             { isHidden: true },
             { new: true }
-        );
+        ).populate("company");
         if (!job) {
             return dataResponse(404, "Job not found", null);
+        }
+        // Tìm user tạo job (chủ công ty)
+        const company = job.company;
+        let user = null;
+        if (company && company.user) {
+            user = await User.findById(company.user);
+        }
+        if (user) {
+            await sendEmail(
+                user.email,
+                "Job của bạn đã bị ẩn",
+                `Job "${job.title}" đã bị report và bị ẩn bởi admin.`
+            );
         }
         return dataResponse(200, "Job hidden successfully", job);
     } catch (error) {
         console.error("Error in hideJob service:", error);
         return dataResponse(500, "Failed to hide job", null);
+    }
+};
+
+export const unhideJob = async (jobId) => {
+    try {
+        const job = await Job.findByIdAndUpdate(
+            jobId,
+            { isHidden: false },
+            { new: true }
+        ).populate("company");
+        if (!job) {
+            return dataResponse(404, "Job not found", null);
+        }
+        // Tìm user tạo job (chủ công ty)
+        const company = job.company;
+        let user = null;
+        if (company && company.user) {
+            user = await User.findById(company.user);
+        }
+        if (user) {
+            await sendEmail(
+                user.email,
+                "Job của bạn đã được bỏ ẩn",
+                `Job "${job.title}" đã được admin bỏ ẩn và hiển thị trở lại.`
+            );
+        }
+        return dataResponse(200, "Job unhidden successfully", job);
+    } catch (error) {
+        console.error("Error in unhideJob service:", error);
+        return dataResponse(500, "Failed to unhide job", null);
+    }
+};
+
+export const getJobseekerApplicationStats = async (
+    userId,
+    period = "day",
+    startDate,
+    endDate
+) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return {
+                code: 400,
+                message: "Invalid userId",
+                payload: null,
+            };
+        }
+
+        // Xác định format group theo period
+        let dateFormat = "%Y-%m-%d"; // Mặc định theo ngày
+        if (period === "week") {
+            dateFormat = "%Y-%m-%d"; // Vẫn group theo ngày, nhưng sẽ group theo tuần ở FE
+        }
+        if (period === "month") {
+            dateFormat = "%Y-%m-%d"; // Group theo ngày để FE có thể hiển thị từng ngày trong tháng
+        }
+
+        // Build match query
+        const match = { user: new mongoose.Types.ObjectId(userId) };
+        if (startDate || endDate) {
+            match.applicationDate = {};
+            if (startDate) match.applicationDate.$gte = new Date(startDate);
+            if (endDate) match.applicationDate.$lte = new Date(endDate);
+        }
+
+        const total = await Application.countDocuments({ user: userId });
+        const applied = await Application.countDocuments({
+            user: userId,
+            status: "APPLIED",
+        });
+        const rejected = await Application.countDocuments({
+            user: userId,
+            status: "REJECTED",
+        });
+        const hired = await Application.countDocuments({
+            user: userId,
+            status: "HIRED",
+        });
+
+        // Group theo ngày
+        const statsByPeriod = await Application.aggregate([
+            { $match: match },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: {
+                            format: dateFormat,
+                            date: "$applicationDate",
+                        },
+                    },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { _id: 1 } },
+        ]);
+
+        return {
+            code: 200,
+            message: "Jobseeker application stats",
+            payload: {
+                total,
+                applied,
+                rejected,
+                hired,
+                chart: statsByPeriod,
+            },
+        };
+    } catch (error) {
+        console.error("Error in getJobseekerApplicationStats:", error);
+        return {
+            code: 500,
+            message: "Failed to get application stats",
+            payload: null,
+        };
     }
 };
