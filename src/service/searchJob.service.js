@@ -10,7 +10,7 @@ const dataResponse = (code, message, payload) => {
 
 export const searchJobs = async (searchParams, page = 1, limit = 10) => {
     try {
-        const query = { isExpired: false }; // Chỉ tìm job chưa hết hạn
+        const query = { isExpired: false, isHidden: { $ne: true } }; // Thêm điều kiện isHidden
 
         // Tìm theo title dạng case insensitive
         if (searchParams.title) {

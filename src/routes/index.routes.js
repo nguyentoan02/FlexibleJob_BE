@@ -12,6 +12,7 @@ import packageRoutes from "./package.routes.js";
 import jobRoutes from "./jobs.routes.js";
 import companyApplicationRoutes from "./companyApplication.routes.js";
 import paymentRoutes from "./payment.routes.js";
+import followCompanyRoutes from "./followcompany.routes.js";
 
 const router = express.Router();
 
@@ -40,4 +41,5 @@ router.use("/category", categoryRoutes);
 router.use("/cv-profiles", cvProfileRoutes); // Thêm CV Profile routes
 router.use("/applications", applicationRoutes);
 router.use("/payments", paymentRoutes);
+router.use("/follow-company", followCompanyRoutes);
 export default router;

@@ -109,14 +109,14 @@ export const getAllCvProfilesByUser = async (userId) => {
  */
 export const getMyCvProfile = async (userId) => {
     try {
-        // Tìm kiếm CV Profile dựa trên user ID
         const cvProfile = await CvProfile.findOne({ user: userId })
             .populate("user", "email firstName lastName number imageUrl")
             .lean();
 
+        // Sửa đoạn này: luôn trả về code 200
         if (!cvProfile) {
             return dataResponse(
-                404,
+                200,
                 "CV Profile not found for this user.",
                 null
             );

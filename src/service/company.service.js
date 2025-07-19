@@ -166,3 +166,64 @@ export const getAllInVoices = async (userId) => {
     });
     return dataResponse(200, "success", invoiceList);
 };
+
+export const getAllCompaniesWithJobs = async () => {
+    try {
+        // Lấy tất cả công ty
+        const companies = await CompanyProfile.find({ status: true }).lean();
+
+        // Lấy job cho từng công ty
+        const companyIds = companies.map((c) => c._id);
+        const jobs = await Job.find({
+            company: { $in: companyIds },
+            isExpired: false,
+            isHidden: { $ne: true },
+        })
+            .select(
+                "company title description location salary level datePosted"
+            )
+            .lean();
+
+        // Gom job theo companyId
+        const jobsByCompany = {};
+        jobs.forEach((job) => {
+            const cid = job.company.toString();
+            if (!jobsByCompany[cid]) jobsByCompany[cid] = [];
+            jobsByCompany[cid].push(job);
+        });
+
+        // Gắn số lượng job và danh sách job vào từng công ty
+        const result = companies.map((company) => ({
+            ...company,
+            jobCount: jobsByCompany[company._id.toString()]?.length || 0,
+            jobs: jobsByCompany[company._id.toString()] || [],
+        }));
+
+        return dataResponse(200, "Company list with jobs", result);
+    } catch (err) {
+        return dataResponse(500, err.message, null);
+    }
+};
+
+export const getCompanyDetailWithJobs = async (companyId) => {
+    try {
+        const company = await CompanyProfile.findById(companyId).lean();
+        if (!company) {
+            return dataResponse(404, "Company not found", null);
+        }
+        const jobs = await Job.find({
+            company: companyId,
+            isExpired: false,
+            isHidden: { $ne: true },
+        })
+            .select("title description location salary level datePosted")
+            .lean();
+        return dataResponse(200, "Company detail with jobs", {
+            ...company,
+            jobs,
+            jobCount: jobs.length,
+        });
+    } catch (err) {
+        return dataResponse(500, err.message, null);
+    }
+};
