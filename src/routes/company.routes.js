@@ -2,7 +2,6 @@ import express from "express";
 import {
     approveCompanyById,
     getCompanyById,
-    getCompanyList,
     getMyCompany,
     getPendingCompaniesForAdmin,
     isCompanyApproved,
@@ -62,6 +61,5 @@ router.get("/stats/invoices", auth, statsInVoice);
 
 // Public routes
 router.get("/:companyId", getCompanyById);
-router.get("/", getCompanyList);
 
 export default router;

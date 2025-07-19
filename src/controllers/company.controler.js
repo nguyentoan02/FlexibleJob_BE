@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import {
     companyApprove,
     createCompany,
-    getAllCompany,
     getAllInVoices,
     getCompanyByUserId,
     getCompanyProfile,
@@ -213,14 +212,6 @@ export const statsJob = async (req, res) => {
 export const statsInVoice = async (req, res) => {
     const userId = req.user.id;
     const result = await getAllInVoices(userId);
-    res.status(result.code).json({
-        message: result.message,
-        payload: result.payload,
-    });
-};
-
-export const getCompanyList = async (req, res) => {
-    const result = await getAllCompany();
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,
