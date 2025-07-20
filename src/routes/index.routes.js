@@ -13,7 +13,7 @@ import jobRoutes from "./jobs.routes.js";
 import companyApplicationRoutes from "./companyApplication.routes.js";
 import paymentRoutes from "./payment.routes.js";
 import followCompanyRoutes from "./followcompany.routes.js";
-
+import chatRoutes from "./chat.routes.js";
 const router = express.Router();
 
 import jobRoute from "./jobs.route.js";
@@ -42,4 +42,5 @@ router.use("/cv-profiles", cvProfileRoutes); // Thêm CV Profile routes
 router.use("/applications", applicationRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/follow-company", followCompanyRoutes);
+router.use("/chat", chatRoutes);
 export default router;
