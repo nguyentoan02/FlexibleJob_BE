@@ -14,6 +14,8 @@ import companyApplicationRoutes from "./companyApplication.routes.js";
 import paymentRoutes from "./payment.routes.js";
 import followCompanyRoutes from "./followcompany.routes.js";
 import chatRoutes from "./chat.routes.js";
+import notificationRoutes from "./notification.routes.js"; // Thêm dòng này
+
 const router = express.Router();
 
 import jobRoute from "./jobs.route.js";
@@ -43,4 +45,5 @@ router.use("/applications", applicationRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/follow-company", followCompanyRoutes);
 router.use("/chat", chatRoutes);
+router.use("/notifications", notificationRoutes); // Thêm dòng này
 export default router;

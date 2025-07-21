@@ -1,6 +1,6 @@
 // src/service/cvProfile.service.js
 import User from "../models/user.model.js";
-import CvProfile from "../models/cvProfile.model.js";
+import CvProfile from "../models/cvprofile.model.js"; // SỬA Ở ĐÂY
 import { uploadPdfToS3 } from "../utils/s3.util.js";
 
 const dataResponse = (code, message, payload) => {
