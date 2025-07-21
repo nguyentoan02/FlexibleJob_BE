@@ -14,19 +14,21 @@ export const createPaymentLink = async (req, res) => {
 
 export const handleWebhook = async (req, res) => {
     try {
-        // The body is already parsed by express.json()
         const webhookData = req.body;
         console.log("Received webhook:", JSON.stringify(webhookData, null, 2));
 
-        // It's good practice to handle this asynchronously
-        webHook(webhookData).catch((err) => {
-            console.error("Error processing webhook:", err);
-        });
+        // PHẢI AWAIT Ở ĐÂY
+        // Chờ cho tất cả các thao tác trong service hoàn tất
+        await webHook(webhookData);
 
-        // Respond to PayOS immediately to prevent timeouts
-        res.status(200).json({ success: true, message: "Webhook received" });
+        // Chỉ gửi response sau khi đã xử lý xong
+        res.status(200).json({
+            success: true,
+            message: "Webhook processed successfully.",
+        });
     } catch (error) {
-        console.error("Webhook controller error:", error);
-        res.status(400).json({ message: error.message });
+        console.error("Webhook processing error:", error);
+        // Trả về lỗi 500 để PayOS có thể thử lại nếu cần
+        res.status(500).json({ success: false, message: error.message });
     }
 };
