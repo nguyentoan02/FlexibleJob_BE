@@ -2,6 +2,7 @@ import payos from "../config/payos.js";
 import Package from "../models/package.model.js";
 import Payment from "../models/payment.model.js";
 import User from "../models/user.model.js";
+import LimitJobs from "../models/limitJobs.model.js"; // Thêm dòng này
 
 export const create = async (userId, packageId) => {
     const pkg = await Package.findById(packageId);
@@ -34,25 +35,15 @@ export const create = async (userId, packageId) => {
 export const webHook = async (webhookData) => {
     const { orderCode, success, data } = webhookData;
 
-    // Verify the webhook signature (important for production)
-    // For simplicity in this example, we'll trust the data.
-    // In a real app, you MUST verify the signature from PayOS.
-    // const isValid = payos.verifyPaymentWebhook(webhookData);
-    // if (!isValid) {
-    //   throw new Error("Invalid webhook signature");
-    // }
-
     const payment = await Payment.findOne({ orderCode: data.orderCode });
     if (!payment) {
         throw new Error("Payment record not found");
     }
 
     if (data.code === "00") {
-        // '00' means success
         payment.status = "SUCCESS";
-        payment.transactionId = data.paymentId; // Save PayOS transaction ID
+        payment.transactionId = data.paymentId;
 
-        // Update user's package
         const user = await User.findById(payment.userId);
         const pkg = await Package.findById(payment.packageId);
 
@@ -62,11 +53,34 @@ export const webHook = async (webhookData) => {
                 purchaseDate: new Date(),
                 expiryDate: new Date(
                     new Date().setDate(
-                        new Date().getDate() + pkg.durationInDays
+                        new Date().getDate() + (pkg.durationInDays || 30)
                     )
                 ),
             };
             await user.save();
+
+            // Cộng job cho LimitJobs theo từng loại package
+            let addJobs = 0;
+            if (pkg.name === "Ultimate") addJobs = 10;
+            else if (pkg.name === "Business") addJobs = 11;
+            else if (pkg.name === "Basic") addJobs = 12;
+
+            // Đảm bảo user có companyProfile
+            const companyId = user.companyProfile;
+            if (companyId) {
+                let limitJobs = await LimitJobs.findOne({ company: companyId });
+                if (!limitJobs) {
+                    limitJobs = new LimitJobs({
+                        company: companyId,
+                        posted: 0,
+                        limit: addJobs,
+                    });
+                    await limitJobs.save();
+                } else {
+                    limitJobs.limit = (limitJobs.limit || 0) + addJobs;
+                    await limitJobs.save();
+                }
+            }
         }
     } else {
         payment.status = "FAILED";
