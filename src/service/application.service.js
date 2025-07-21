@@ -1,11 +1,12 @@
 import Application from "../models/application.model.js";
 import Job from "../models/jobs.model.js";
 import User from "../models/user.model.js";
-import CvProfile from "../models/cvProfile.model.js"; // Đảm bảo import đúng tên file
+import CvProfile from "../models/cvprofile.model.js"; // SỬA Ở ĐÂY
 import {
     getMatchScoreFromAI,
     getComparativeAnalysisFromAI,
 } from "./openai.service.js";
+import { createNotification } from "./notification.service.js";
 
 // Hàm hỗ trợ định dạng response
 const dataResponse = (code, message, payload) => {
@@ -68,6 +69,23 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
         await newApplication.save();
 
         await scoreApplicationInBackground(newApplication._id);
+
+        // Gửi thông báo cho nhà tuyển dụng
+        const companyOwnerId = job.company.user;
+        await createNotification(
+            companyOwnerId,
+            `Ứng viên ${user.firstName} ${user.lastName} vừa nộp đơn vào vị trí ${job.title}.`,
+            "APPLICATION_SUBMITTED",
+            `/company/applications`
+        );
+
+        // Gửi thông báo xác nhận cho ứng viên
+        await createNotification(
+            userId,
+            `Bạn đã nộp đơn thành công vào vị trí ${job.title}.`,
+            "APPLICATION_SUCCESS",
+            "/jobseeker/applications"
+        );
 
         user.applications.push(newApplication._id);
         await user.save();
@@ -137,10 +155,26 @@ export const changeStatus = async (appId, action, note) => {
             id,
             { status: action, noted: note },
             { new: true }
-        );
+        ).populate("user job");
         if (!app) {
             return dataResponse(404, "can not find this application", null);
         }
+
+        // Gửi thông báo cho ứng viên
+        const statusText = {
+            REJECTED: "bị từ chối",
+            HIRED: "được tuyển",
+        };
+
+        if (app.user && statusText[action]) {
+            await createNotification(
+                app.user._id,
+                `Đơn ứng tuyển của bạn cho vị trí "${app.job.title}" đã ${statusText[action]}.`,
+                "APPLICATION_STATUS_CHANGED",
+                "/jobseeker/applications"
+            );
+        }
+
         return dataResponse(200, "success", app);
     } catch (error) {
         console.log(error.message);

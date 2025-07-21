@@ -3,6 +3,7 @@ import Application from "../models/application.model.js";
 import User from "../models/user.model.js";
 import { sendEmail } from "../utils/auth.util.js";
 import mongoose from "mongoose";
+import { createNotification } from "./notification.service.js"; // Thêm import
 const dataResponse = (code, message, payload) => {
     return {
         code: code,
@@ -136,6 +137,13 @@ export const hideJob = async (jobId) => {
                 user.email,
                 "Job của bạn đã bị ẩn",
                 `Job "${job.title}" đã bị report và bị ẩn bởi admin.`
+            );
+            // Gửi thông báo
+            await createNotification(
+                user._id,
+                `Tin tuyển dụng "${job.title}" của bạn đã bị ẩn bởi quản trị viên.`,
+                "JOB_HIDDEN",
+                "/manage-jobs"
             );
         }
         return dataResponse(200, "Job hidden successfully", job);
