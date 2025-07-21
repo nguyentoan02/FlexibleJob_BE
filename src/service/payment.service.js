@@ -37,6 +37,10 @@ export const webHook = async (webhookData) => {
 
     const payment = await Payment.findOne({ orderCode: data.orderCode });
     if (!payment) {
+        console.error(
+            "Webhook Error: Payment record not found for orderCode:",
+            data.orderCode
+        );
         throw new Error("Payment record not found");
     }
 
@@ -46,6 +50,12 @@ export const webHook = async (webhookData) => {
 
         const user = await User.findById(payment.userId);
         const pkg = await Package.findById(payment.packageId);
+
+        console.log(
+            "Webhook - User found:",
+            user ? user._id.toString() : "Not Found"
+        );
+        console.log("Webhook - Package found:", pkg ? pkg.name : "Not Found");
 
         if (user && pkg) {
             user.package = {
@@ -59,27 +69,48 @@ export const webHook = async (webhookData) => {
             };
             await user.save();
 
-            // Cộng job cho LimitJobs theo từng loại package
             let addJobs = 0;
             if (pkg.name === "Ultimate") addJobs = 10;
             else if (pkg.name === "Business") addJobs = 11;
             else if (pkg.name === "Basic") addJobs = 12;
 
-            // Đảm bảo user có companyProfile
+            console.log(
+                `Webhook - Package: ${pkg.name}, Jobs to add: ${addJobs}`
+            );
+
             const companyId = user.companyProfile;
+            console.log("Webhook - CompanyProfile ID from user:", companyId);
+
             if (companyId) {
                 let limitJobs = await LimitJobs.findOne({ company: companyId });
+                console.log(
+                    "Webhook - Found LimitJobs before update:",
+                    limitJobs
+                );
+
                 if (!limitJobs) {
+                    console.log(
+                        "Webhook - No LimitJobs found, creating new one."
+                    );
                     limitJobs = new LimitJobs({
                         company: companyId,
                         posted: 0,
                         limit: addJobs,
                     });
                     await limitJobs.save();
+                    console.log("Webhook - New LimitJobs created:", limitJobs);
                 } else {
+                    console.log(
+                        `Webhook - Updating existing LimitJobs. Current limit: ${limitJobs.limit}`
+                    );
                     limitJobs.limit = (limitJobs.limit || 0) + addJobs;
                     await limitJobs.save();
+                    console.log("Webhook - LimitJobs after update:", limitJobs);
                 }
+            } else {
+                console.error(
+                    "Webhook - CRITICAL: user.companyProfile is missing. Cannot add jobs."
+                );
             }
         }
     } else {
