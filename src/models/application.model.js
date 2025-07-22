@@ -17,13 +17,17 @@ const ApplicationSchema = new mongoose.Schema({
         enum: ["APPLIED", "REJECTED", "HIRED"],
         default: "APPLIED",
     },
-    matchScore: {
+    // matchScore: {
+    //     type: Number,
+    //     default: null, // Mặc định là null cho đến khi AI chấm xong
+    // },
+    // scoreJustification: {
+    //     type: String,
+    //     default: "", // Lời giải thích của AI
+    // },
+    rank: {
         type: Number,
-        default: null, // Mặc định là null cho đến khi AI chấm xong
-    },
-    scoreJustification: {
-        type: String,
-        default: "", // Lời giải thích của AI
+        default: null,
     },
     updatedAt: { type: Date, default: Date.now },
 });
