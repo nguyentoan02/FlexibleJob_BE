@@ -4,6 +4,7 @@ import {
     getCompanyById,
     getMyCompany,
     getPendingCompaniesForAdmin,
+    getTimeSeriesStatsController, // Thêm vào đây
     isCompanyApproved,
     statsInVoice,
     statsJob,
@@ -60,6 +61,8 @@ router.get(
 router.get("/stats/job", auth, statsJob);
 
 router.get("/stats/invoices", auth, statsInVoice);
+
+router.get("/stats/timeseries", auth, isRole("EMPLOYER"), getTimeSeriesStatsController);
 
 // Public routes
 router.get("/public", getAllCompaniesPublic); // Lấy danh sách công ty + job

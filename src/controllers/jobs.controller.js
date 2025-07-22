@@ -51,7 +51,8 @@ export const getJobByCompany = async (req, res) => {
 
 export const handleExpireJob = async (req, res) => {
     const { jobId } = req.params;
-    const result = await expireJob(jobId, true, Date.now());
+    const { expireDate } = req.body;
+    const result = await expireJob(jobId, false, expireDate);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

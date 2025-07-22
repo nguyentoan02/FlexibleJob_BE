@@ -72,19 +72,25 @@ export const getJobByCompanyId = async (companyId) => {
     return 404, "company not found", null;
 };
 
-export const expireJob = async (jobId, action, date) => {
-    const job = await Job.findByIdAndUpdate(
-        jobId,
-        {
-            isExpired: action,
-            expiredAt: date,
-        },
-        { new: true }
-    );
-    if (!job) {
-        return dataResponse(404, "can not find this job", null);
+export const expireJob = async (jobId, action, expireDate) => {
+    try {
+        const job = await Job.findByIdAndUpdate(
+            jobId,
+            {
+                isExpired: action,
+                expiredAt: expireDate,
+            },
+            { new: true }
+        );
+
+        if (!job) {
+            return dataResponse(404, "Cannot find this job", null);
+        }
+
+        return dataResponse(200, "Job marked as expired successfully", job);
+    } catch (error) {
+        return dataResponse(500, "Internal server error", null);
     }
-    return dataResponse(200, "success", job);
 };
 
 export const getListApplicant = async (jobId) => {
