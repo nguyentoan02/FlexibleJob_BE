@@ -23,7 +23,7 @@ router.get("/limit", auth, isRole("EMPLOYER"), getJobLimitationByUserId);
 
 router.post("/createJob", auth, isCompany, isJobLimit, createJob);
 
-router.post("/expireJob/:jobId", handleExpireJob);
+router.put("/expireJob/:jobId", handleExpireJob);
 
 router.put("/:jobId", auth, isCompany, updateJob);
 
