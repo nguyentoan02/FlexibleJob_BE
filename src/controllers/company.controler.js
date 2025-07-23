@@ -11,17 +11,37 @@ import {
     updateCompanyApproval,
     getApprovedCompanies,
     getCompanyApprovalStats,
-    filterCompanies
+    filterCompanies,
+    deleteCompany
 } from "../service/company.service.js";
 import { uploadToCloudinary } from "../utils/cloudinary.util.js";
 import { removeEmptyFields } from "../utils/handleArray.util.js";
+import Job from "../models/jobs.model.js";
+import Application from "../models/application.model.js";
+import CompanyProfile from "../models/companyprofile.model.js";
+import { sendEmail } from "../utils/auth.util.js";
 
 export const getCompanyById = async (req, res) => {
     const { companyId } = req.params;
     const result = await getCompanyProfile(companyId);
-    res.status(result.code).json({
+    if (result.code !== 200) {
+        return res.status(result.code).json({
+            message: result.message,
+            payload: result.payload,
+        });
+    }
+    // Lấy thêm danh sách jobs của công ty
+    const jobs = await Job.find({ company: companyId });
+    // Populate thông tin user đầy đủ bao gồm trạng thái ban
+    const companyWithUser = await CompanyProfile.findById(companyId)
+        .populate("user", "firstName lastName email imageUrl role isBanned banReason banAt")
+        .lean();
+    return res.status(200).json({
         message: result.message,
-        payload: result.payload,
+        payload: {
+            company: companyWithUser,
+            jobs
+        }
     });
 };
 
@@ -184,6 +204,38 @@ export const approveCompanyById = async (req, res) => {
     const { companyId } = req.params;
     const { isApproved } = req.body;
     const result = await updateCompanyApproval(companyId, isApproved);
+    
+    // Nếu reject company (isApproved = false), gửi email thông báo
+    if (!isApproved && result.code === 200) {
+        try {
+            // Lấy thông tin company và user
+            const company = await CompanyProfile.findById(companyId).populate("user", "email firstName lastName");
+            if (company && company.user) {
+                const emailSubject = "Thông báo về hồ sơ công ty";
+                const emailContent = `
+                    Xin chào ${company.user.firstName} ${company.user.lastName},
+                    
+                    Chúng tôi rất tiếc phải thông báo rằng hồ sơ công ty "${company.companyName}" của bạn đã không được duyệt.
+                    
+                    Lý do có thể bao gồm:
+                    - Thông tin công ty chưa đầy đủ hoặc không chính xác
+                    - Tài liệu xác thực chưa đáp ứng yêu cầu
+                    - Vi phạm các quy định của hệ thống
+                    
+                    Vui lòng kiểm tra và cập nhật lại thông tin công ty để được xem xét lại.
+                    
+                    Trân trọng,
+                    Đội ngũ quản trị hệ thống
+                `;
+                
+                await sendEmail(company.user.email, emailSubject, emailContent);
+            }
+        } catch (emailError) {
+            console.error("Error sending rejection email:", emailError);
+            // Không trả về lỗi nếu gửi email thất bại, vẫn trả về kết quả approve
+        }
+    }
+    
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,
@@ -237,6 +289,15 @@ export const getCompanyApprovalStatsController = async (req, res) => {
 export const filterCompaniesController = async (req, res) => {
     const { location, industry, companySize } = req.query;
     const result = await filterCompanies(location, industry, companySize);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const deleteCompanyById = async (req, res) => {
+    const { companyId } = req.params;
+    const result = await deleteCompany(companyId);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

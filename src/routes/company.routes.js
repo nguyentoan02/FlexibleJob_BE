@@ -11,6 +11,7 @@ import {
     getApprovedCompaniesForAdmin,
     getCompanyApprovalStatsController,
     filterCompaniesController,
+    deleteCompanyById
 } from "../controllers/company.controler.js";
 import multer from "multer";
 import auth from "../middlewares/auth.middleware.js";
@@ -34,6 +35,12 @@ router.patch(
     auth,
     isRole("ADMIN"),
     approveCompanyById
+);
+router.delete(
+    "/admin/:companyId",
+    auth,
+    isRole("ADMIN"),
+    deleteCompanyById
 );
 router.get(
     "/admin/approved-companies",

@@ -266,3 +266,33 @@ export const filterCompanies = async (location, industry, companySize) => {
         return dataResponse(500, err.message, null);
     }
 };
+
+export const deleteCompany = async (companyId) => {
+    try {
+        // Kiểm tra company có tồn tại không
+        const company = await CompanyProfile.findById(companyId);
+        if (!company) {
+            return dataResponse(404, "Company not found", null);
+        }
+
+        // Xóa tất cả jobs của company
+        await Job.deleteMany({ company: companyId });
+        
+        // Xóa tất cả applications liên quan đến jobs của company
+        const jobIds = await Job.find({ company: companyId }).select('_id');
+        if (jobIds.length > 0) {
+            await Application.deleteMany({ job: { $in: jobIds } });
+        }
+        
+        // Xóa limitJobs của company
+        await LimitJobs.deleteOne({ company: companyId });
+        
+        // Xóa company profile
+        const deletedCompany = await CompanyProfile.findByIdAndDelete(companyId);
+        
+        return dataResponse(200, "Company deleted successfully", deletedCompany);
+    } catch (err) {
+        console.error("Error deleting company:", err);
+        return dataResponse(500, err.message, null);
+    }
+};
