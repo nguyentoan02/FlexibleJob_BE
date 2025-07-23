@@ -1,4 +1,4 @@
-import { create, webHook } from "../service/payment.service.js";
+import { create, webHook, getTotalRevenue, getBuyersList } from "../service/payment.service.js";
 
 export const createPaymentLink = async (req, res) => {
     try {
@@ -30,5 +30,23 @@ export const handleWebhook = async (req, res) => {
         console.error("Webhook processing error:", error);
         // Trả về lỗi 500 để PayOS có thể thử lại nếu cần
         res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const getTotalRevenueController = async (req, res) => {
+    try {
+        const total = await getTotalRevenue();
+        res.status(200).json(total);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getBuyersListController = async (req, res) => {
+    try {
+        const buyers = await getBuyersList();
+        res.status(200).json(buyers);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };

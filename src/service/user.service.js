@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { hashPassword } from "../utils/auth.util.js";
+import CompanyProfile from "../models/companyprofile.model.js";
 
 const dataResponse = (code, message, payload) => {
     return {
@@ -49,4 +50,20 @@ export const changePassword = async (userId, currentPassword, newPassword) => {
     } catch (err) {
         return dataResponse(500, `Server error: ${err.message}`, null);
     }
+};
+
+export const getTotalUsers = async () => {
+    return await User.countDocuments({ role: { $ne: "ADMIN" } });
+};
+
+export const getTotalEmployers = async () => {
+    return await User.countDocuments({ role: "EMPLOYER" });
+};
+
+export const getTotalJobseekers = async () => {
+    return await User.countDocuments({ role: "JOBSEEKER" });
+};
+
+export const getTotalCompanies = async () => {
+    return await CompanyProfile.countDocuments();
 };

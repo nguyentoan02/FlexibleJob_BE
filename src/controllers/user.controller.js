@@ -1,5 +1,5 @@
 import User from "../models/user.model.js";
-import { getUser, updateUser, changePassword as changePasswordService } from "../service/user.service.js";
+import { getUser, updateUser, changePassword as changePasswordService, getTotalUsers, getTotalEmployers, getTotalJobseekers, getTotalCompanies } from "../service/user.service.js";
 
 // Helper function để tạo response chuẩn
 const createResponse = (message, data, count = null) => ({
@@ -89,5 +89,41 @@ export const changePassword = async (req, res) => {
         });
     } catch (error) {
         handleError(res, error, "Lỗi khi đổi mật khẩu");
+    }
+};
+
+export const getTotalUsersController = async (req, res) => {
+    try {
+        const total = await getTotalUsers();
+        res.status(200).json(total);
+    } catch (error) {
+        handleError(res, error, "Lỗi khi lấy tổng số user");
+    }
+};
+
+export const getTotalEmployersController = async (req, res) => {
+    try {
+        const total = await getTotalEmployers();
+        res.status(200).json(total);
+    } catch (error) {
+        handleError(res, error, "Lỗi khi lấy tổng số employer");
+    }
+};
+
+export const getTotalJobseekersController = async (req, res) => {
+    try {
+        const total = await getTotalJobseekers();
+        res.status(200).json(total);
+    } catch (error) {
+        handleError(res, error, "Lỗi khi lấy tổng số jobseeker");
+    }
+};
+
+export const getTotalCompaniesController = async (req, res) => {
+    try {
+        const total = await getTotalCompanies();
+        res.status(200).json(total);
+    } catch (error) {
+        handleError(res, error, "Lỗi khi lấy tổng số công ty");
     }
 };
