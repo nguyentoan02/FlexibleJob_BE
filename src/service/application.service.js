@@ -1,11 +1,12 @@
 import Application from "../models/application.model.js";
 import Job from "../models/jobs.model.js";
 import User from "../models/user.model.js";
-import CvProfile from "../models/cvProfile.model.js"; // Đảm bảo import đúng tên file
+import CvProfile from "../models/cvprofile.model.js"; // SỬA Ở ĐÂY
 import {
     getMatchScoreFromAI,
     getComparativeAnalysisFromAI,
 } from "./openai.service.js";
+import { createNotification } from "./notification.service.js";
 
 // Hàm hỗ trợ định dạng response
 const dataResponse = (code, message, payload) => {
@@ -67,7 +68,24 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
 
         await newApplication.save();
 
-        await scoreApplicationInBackground(newApplication._id);
+        // await scoreApplicationInBackground(newApplication._id);
+
+        // Gửi thông báo cho nhà tuyển dụng
+        const companyOwnerId = job.company.user;
+        await createNotification(
+            companyOwnerId,
+            `Ứng viên ${user.firstName} ${user.lastName} vừa nộp đơn vào vị trí ${job.title}.`,
+            "APPLICATION_SUBMITTED",
+            `/company/applications`
+        );
+
+        // Gửi thông báo xác nhận cho ứng viên
+        await createNotification(
+            userId,
+            `Bạn đã nộp đơn thành công vào vị trí ${job.title}.`,
+            "APPLICATION_SUCCESS",
+            "/jobseeker/applications"
+        );
 
         user.applications.push(newApplication._id);
         await user.save();
@@ -91,40 +109,38 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
 export const getMyApplications = async (userId) => {
     try {
         const applications = await Application.find({ user: userId })
-            .populate("job", "title company")
-            .populate({
-                path: "cv",
-                model: "CvProfile",
-                select: "linkUrl",
-            })
             .populate({
                 path: "job",
+                select: "title company",
                 populate: {
                     path: "company",
                     select: "companyName location",
                 },
             })
+            .populate({
+                path: "cv",
+                model: "CvProfile",
+                select: "linkUrl skills education experience certifications",
+            })
+            .populate({
+                path: "user",
+                select: "firstName lastName email imageUrl",
+            })
             .sort({ applicationDate: -1 })
-            .lean(); // <-- Thêm .lean() để trả về plain object
+            .lean();
 
-        if (!applications || applications.length === 0) {
-            return dataResponse(404, "No applications found", null);
-        }
-
-        // Đảm bảo trả về cả cvSnapshot cho mỗi application
-        const applicationsWithCvSnapshot = applications.map((app) => ({
-            ...app,
-            cvSnapshot: app.cvSnapshot, // đã có sẵn trong document
-        }));
-
+        // Luôn trả về mảng, không trả về 404
         return dataResponse(
             200,
             "Applications retrieved successfully",
-            applicationsWithCvSnapshot
+            applications.map((app) => ({
+                ...app,
+                cvSnapshot: app.cvSnapshot,
+            }))
         );
     } catch (error) {
         console.error("Error in getMyApplications service:", error);
-        return dataResponse(500, `Server error: ${error.message}`, null);
+        return dataResponse(500, `Server error: ${error.message}`, []);
     }
 };
 
@@ -139,10 +155,26 @@ export const changeStatus = async (appId, action, note) => {
             id,
             { status: action, noted: note },
             { new: true }
-        );
+        ).populate("user job");
         if (!app) {
             return dataResponse(404, "can not find this application", null);
         }
+
+        // Gửi thông báo cho ứng viên
+        const statusText = {
+            REJECTED: "bị từ chối",
+            HIRED: "được tuyển",
+        };
+
+        if (app.user && statusText[action]) {
+            await createNotification(
+                app.user._id,
+                `Đơn ứng tuyển của bạn cho vị trí "${app.job.title}" đã ${statusText[action]}.`,
+                "APPLICATION_STATUS_CHANGED",
+                "/jobseeker/applications"
+            );
+        }
+
         return dataResponse(200, "success", app);
     } catch (error) {
         console.log(error.message);
@@ -150,63 +182,63 @@ export const changeStatus = async (appId, action, note) => {
     }
 };
 
-const scoreApplicationInBackground = async (applicationId) => {
-    try {
-        const application = await Application.findById(applicationId);
-        if (!application) {
-            console.log(
-                `Scoring failed: Application ${applicationId} not found.`
-            );
-            return;
-        }
+// const scoreApplicationInBackground = async (applicationId) => {
+//     try {
+//         const application = await Application.findById(applicationId);
+//         if (!application) {
+//             console.log(
+//                 `Scoring failed: Application ${applicationId} not found.`
+//             );
+//             return;
+//         }
 
-        const job = await Job.findById(application.job);
-        const cv = application.cvSnapshot;
+//         const job = await Job.findById(application.job);
+//         const cv = application.cvSnapshot;
 
-        if (!job || !cv) {
-            console.log(
-                `Scoring failed: Job or CV data missing for application ${applicationId}.`
-            );
-            return;
-        }
+//         if (!job || !cv) {
+//             console.log(
+//                 `Scoring failed: Job or CV data missing for application ${applicationId}.`
+//             );
+//             return;
+//         }
 
-        const jobDescriptionText = `Job Title: ${job.title}. Salary: ${
-            job.salary
-        }. Location: ${job.location}. Skills required: ${job.requirements.join(
-            ", "
-        )}. Description: ${job.description}.`;
-        const cvContentText = `Candidate's Skills: ${cv.skills.join(
-            ", "
-        )}. Experience: ${cv.experience
-            .map((e) => `${e.title} at ${e.company} - ${e.description}`)
-            .join(". ")}. Education: ${cv.education
-            .map((e) => `${e.degree} at ${e.school}`)
-            .join(". ")}.`;
+//         const jobDescriptionText = `Job Title: ${job.title}. Salary: ${
+//             job.salary
+//         }. Location: ${job.location}. Skills required: ${job.requirements.join(
+//             ", "
+//         )}. Description: ${job.description}.`;
+//         const cvContentText = `Candidate's Skills: ${cv.skills.join(
+//             ", "
+//         )}. Experience: ${cv.experience
+//             .map((e) => `${e.title} at ${e.company} - ${e.description}`)
+//             .join(". ")}. Education: ${cv.education
+//             .map((e) => `${e.degree} at ${e.school}`)
+//             .join(". ")}.`;
 
-        const aiResult = await getMatchScoreFromAI(
-            jobDescriptionText,
-            cvContentText
-        );
+//         const aiResult = await getMatchScoreFromAI(
+//             jobDescriptionText,
+//             cvContentText
+//         );
 
-        if (aiResult && aiResult.score) {
-            application.matchScore = aiResult.score;
-            application.scoreJustification = aiResult.justification;
-            await application.save();
-            console.log(
-                `Successfully scored application ${applicationId} with score: ${aiResult.score}`
-            );
-        } else {
-            console.log(
-                `AI did not return a valid score for application ${applicationId}.`
-            );
-        }
-    } catch (error) {
-        console.error(
-            `❌ Failed to score application ${applicationId}:`,
-            error
-        );
-    }
-};
+//         if (aiResult && aiResult.score) {
+//             application.matchScore = aiResult.score;
+//             application.scoreJustification = aiResult.justification;
+//             await application.save();
+//             console.log(
+//                 `Successfully scored application ${applicationId} with score: ${aiResult.score}`
+//             );
+//         } else {
+//             console.log(
+//                 `AI did not return a valid score for application ${applicationId}.`
+//             );
+//         }
+//     } catch (error) {
+//         console.error(
+//             `❌ Failed to score application ${applicationId}:`,
+//             error
+//         );
+//     }
+// };
 
 export const analyzeApplicantsForJob = async (jobId) => {
     try {
@@ -217,7 +249,6 @@ export const analyzeApplicantsForJob = async (jobId) => {
 
         const applications = await Application.find({
             job: jobId,
-            matchScore: { $ne: null },
         })
             .populate({
                 path: "user",
@@ -237,13 +268,13 @@ export const analyzeApplicantsForJob = async (jobId) => {
         const applicantsData = applications
             .map(
                 (app) =>
-                    `Applicant ID: ${app._id}, Score: ${app.matchScore},
-                    firstName:${app.user.firstName}, lastName:${app.user.lastName}, image:${app.user.imageUrl},
-                Justification: ${app.scoreJustification}`
+                    `Applicant ID: ${app._id},
+                    firstName:${app.user.firstName}, lastName:${app.user.lastName}, image:${app.user.imageUrl}, skill:${app.cvSnapshot.skills}, education: ${app.cvSnapshot.education}, experience: ${app.cvSnapshot.experience}, cvDescription: ${app.cvSnapshot.description}, certifications: ${app.cvSnapshot.certifications}
+                `
             )
             .join("\n\n");
 
-        const jobDescriptionText = `Job Title: ${job.title}. Description: ${job.description}.`;
+        const jobDescriptionText = `Job Title: ${job.title}. Description: ${job.description}. requirements: ${job.requirements}. Level: ${job.level}. Experience Years: ${job.experienceYears}`;
 
         const analysisResult = await getComparativeAnalysisFromAI(
             jobDescriptionText,

@@ -1,6 +1,8 @@
 import CompanyProfile from "../models/companyprofile.model.js";
 import Job from "../models/jobs.model.js";
 import LimitJobs from "../models/limitJobs.model.js";
+import FollowCompany from "../models/followcompany.model.js";
+import { sendEmail } from "../utils/auth.util.js";
 
 const dataResponse = (code, message, payload) => {
     return {
@@ -27,6 +29,32 @@ export const getAllAvailableJobs = async (page, limit) => {
 export const createJobForCompany = async (data) => {
     try {
         const result = await Job.create(data);
+
+        // Lấy danh sách người dùng đã follow công ty
+        const followers = await FollowCompany.find({
+            company: data.company,
+        }).populate("user", "email firstName lastName");
+        console.log("Followers count:", followers.length);
+
+        for (const follow of followers) {
+            if (follow.user && follow.user.email) {
+                try {
+                    await sendEmail(
+                        follow.user.email,
+                        "Công ty bạn theo dõi vừa đăng job mới",
+                        `Công ty bạn theo dõi vừa đăng tin tuyển dụng mới: "${result.title}". Hãy truy cập để xem chi tiết!`
+                    );
+                    console.log("Sent mail to:", follow.user.email);
+                } catch (mailErr) {
+                    console.error(
+                        "Send mail error:",
+                        mailErr,
+                        follow.user.email
+                    );
+                }
+            }
+        }
+
         return dataResponse(200, "create job success", result);
     } catch (error) {
         return dataResponse(500, error.message, null);
@@ -44,19 +72,25 @@ export const getJobByCompanyId = async (companyId) => {
     return 404, "company not found", null;
 };
 
-export const expireJob = async (jobId, action, date) => {
-    const job = await Job.findByIdAndUpdate(
-        jobId,
-        {
-            isExpired: action,
-            expiredAt: date,
-        },
-        { new: true }
-    );
-    if (!job) {
-        return dataResponse(404, "can not find this job", null);
+export const expireJob = async (jobId, action, expireDate) => {
+    try {
+        const job = await Job.findByIdAndUpdate(
+            jobId,
+            {
+                isExpired: action,
+                expiredAt: expireDate,
+            },
+            { new: true }
+        );
+
+        if (!job) {
+            return dataResponse(404, "Cannot find this job", null);
+        }
+
+        return dataResponse(200, "Job marked as expired successfully", job);
+    } catch (error) {
+        return dataResponse(500, "Internal server error", null);
     }
-    return dataResponse(200, "success", job);
 };
 
 export const getListApplicant = async (jobId) => {

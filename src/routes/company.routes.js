@@ -4,10 +4,13 @@ import {
     getCompanyById,
     getMyCompany,
     getPendingCompaniesForAdmin,
+    getTimeSeriesStatsController, // Thêm vào đây
     isCompanyApproved,
     statsInVoice,
     statsJob,
     updateCompany,
+    getAllCompaniesPublic,
+    getCompanyDetailPublic,
 } from "../controllers/company.controler.js";
 import multer from "multer";
 import auth from "../middlewares/auth.middleware.js";
@@ -59,7 +62,11 @@ router.get("/stats/job", auth, statsJob);
 
 router.get("/stats/invoices", auth, statsInVoice);
 
+router.get("/stats/timeseries", auth, isRole("EMPLOYER"), getTimeSeriesStatsController);
+
 // Public routes
+router.get("/public", getAllCompaniesPublic); // Lấy danh sách công ty + job
+router.get("/public/:companyId", getCompanyDetailPublic); // Lấy chi tiết công ty + job
 router.get("/:companyId", getCompanyById);
 
 export default router;

@@ -11,6 +11,7 @@ import {
     newPassword1,
     resetPasswordViaEmail,
     verifyResetToken,
+    verifyEmail,
 } from "../service/auth.service.js";
 
 const dataResponse = (code, message, payload) => {
@@ -66,6 +67,15 @@ export const newPassword = async (req, res) => {
 export const verifyResetPasswordToken = async (req, res) => {
     const { token } = req.params;
     const result = await verifyResetToken(token);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const verifyEmailController = async (req, res) => {
+    const { token } = req.params;
+    const result = await verifyEmail(token);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

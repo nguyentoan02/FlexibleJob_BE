@@ -15,7 +15,6 @@ const JobSchema = new mongoose.Schema({
     description: { type: String, required: true }, // Mô tả chi tiết công việc
     requirements: [String], // Các yêu cầu bắt buộc
     benefits: [String], // Quyền lợi (bảo hiểm, phụ cấp, ...)
-
     experienceYears: { type: Number, default: 0 }, // Số năm kinh nghiệm yêu cầu
     level: {
         type: String,
@@ -29,23 +28,25 @@ const JobSchema = new mongoose.Schema({
     },
     location: { type: String },
     isRemote: { type: Boolean, default: false },
-
     salary: {
         min: { type: Number },
         max: { type: Number },
         currency: { type: String, default: "USD" }, // hoặc 'VND'
     },
-
     datePosted: { type: Date, default: Date.now },
     deadline: { type: Date }, // Hạn chót nộp đơn
-
     views: { type: Number, default: 0 }, // Thống kê lượt xem
     applicants: [{ type: mongoose.Schema.Types.ObjectId, ref: "Application" }], // Ứng viên đã nộp
-
     expiredAt: { type: Date }, // NEW: ngày hết hạn
     isExpired: { type: Boolean, default: false }, // NEW: đánh dấu thủ công/tự động
-
-    // Nếu muốn tracking kỹ:
+    isHidden: { type: Boolean, default: false }, // NEW: trạng thái ẩn công việc
+    reports: [
+        {
+            user: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Người báo cáo
+            reason: { type: String }, // Lý do báo cáo
+            reportedAt: { type: Date, default: Date.now }, // Thời gian báo cáo
+        },
+    ],
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });

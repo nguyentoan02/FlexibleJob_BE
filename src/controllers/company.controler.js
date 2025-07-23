@@ -2,10 +2,13 @@ import mongoose from "mongoose";
 import {
     companyApprove,
     createCompany,
+    getAllCompaniesWithJobs,
     getAllInVoices,
     getCompanyByUserId,
+    getCompanyDetailWithJobs,
     getCompanyProfile,
     getJobStats,
+    getTimeSeriesStats,
     updateCompanyProfile,
 } from "../service/company.service.js";
 import { uploadToCloudinary } from "../utils/cloudinary.util.js";
@@ -212,6 +215,41 @@ export const statsJob = async (req, res) => {
 export const statsInVoice = async (req, res) => {
     const userId = req.user.id;
     const result = await getAllInVoices(userId);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const getTimeSeriesStatsController = async (req, res) => {
+    const userId = req.user.id;
+    const { metric, range } = req.query;
+
+    if (!metric || !range) {
+        return res.status(400).json({
+            message: "Missing required query parameters: metric and range",
+            payload: null,
+        });
+    }
+
+    const result = await getTimeSeriesStats(userId, metric, range);
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const getAllCompaniesPublic = async (req, res) => {
+    const result = await getAllCompaniesWithJobs();
+    res.status(result.code).json({
+        message: result.message,
+        payload: result.payload,
+    });
+};
+
+export const getCompanyDetailPublic = async (req, res) => {
+    const { companyId } = req.params;
+    const result = await getCompanyDetailWithJobs(companyId);
     res.status(result.code).json({
         message: result.message,
         payload: result.payload,

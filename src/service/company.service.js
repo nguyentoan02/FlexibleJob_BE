@@ -160,9 +160,159 @@ export const getJobStats = async (userId) => {
 };
 
 export const getAllInVoices = async (userId) => {
-    const invoiceList = await Payment.find({ userId: userId }).populate({
-        path: "packageId",
-        select: "name",
-    });
+    const invoiceList = await Payment.find({ userId: userId })
+        .populate({
+            path: "packageId",
+            select: "name",
+        })
+        .sort({ createdAt: -1 });
     return dataResponse(200, "success", invoiceList);
+};
+
+export const getAllCompaniesWithJobs = async () => {
+    try {
+        // Lấy tất cả công ty
+        const companies = await CompanyProfile.find({ status: true }).lean();
+
+        // Lấy job cho từng công ty
+        const companyIds = companies.map((c) => c._id);
+        const jobs = await Job.find({
+            company: { $in: companyIds },
+            isExpired: false,
+            isHidden: { $ne: true },
+        })
+            .select(
+                "company title description location salary level datePosted"
+            )
+            .lean();
+
+        // Gom job theo companyId
+        const jobsByCompany = {};
+        jobs.forEach((job) => {
+            const cid = job.company.toString();
+            if (!jobsByCompany[cid]) jobsByCompany[cid] = [];
+            jobsByCompany[cid].push(job);
+        });
+
+        // Gắn số lượng job và danh sách job vào từng công ty
+        const result = companies.map((company) => ({
+            ...company,
+            jobCount: jobsByCompany[company._id.toString()]?.length || 0,
+            jobs: jobsByCompany[company._id.toString()] || [],
+        }));
+
+        return dataResponse(200, "Company list with jobs", result);
+    } catch (err) {
+        return dataResponse(500, err.message, null);
+    }
+};
+
+export const getTimeSeriesStats = async (userId, metric, range) => {
+    try {
+        const company = await CompanyProfile.findOne({ user: userId });
+        if (!company) {
+            return dataResponse(404, "Company not found", null);
+        }
+        const companyId = company._id;
+
+        let Model;
+        let dateField = "createdAt";
+        let matchQuery = {};
+
+        // 1. Determine Model and query based on metric
+        if (metric === "followers") {
+            const module = await import("../models/followcompany.model.js");
+            Model = module.default;
+            matchQuery = { company: companyId };
+        } else if (metric === "applications") {
+            const module = await import("../models/application.model.js");
+            Model = module.default;
+            const companyJobs = await Job.find({ company: companyId }).select(
+                "_id"
+            );
+            const jobIds = companyJobs.map((job) => job._id);
+            matchQuery = { job: { $in: jobIds } };
+        } else {
+            return dataResponse(400, "Invalid metric type", null);
+        }
+
+        // 2. Determine time range
+        const endDate = new Date();
+        const startDate = new Date();
+        if (range === "30d") {
+            startDate.setDate(endDate.getDate() - 30);
+        } else if (range === "90d") {
+            startDate.setDate(endDate.getDate() - 90);
+        } else if (range === "1y") {
+            startDate.setFullYear(endDate.getFullYear() - 1);
+        } else {
+            return dataResponse(400, "Invalid range", null);
+        }
+
+        matchQuery[dateField] = { $gte: startDate, $lte: endDate };
+
+        // 3. Use Aggregation Framework to group and count
+        const stats = await Model.aggregate([
+            { $match: matchQuery },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: {
+                            format: "%Y-%m-%d",
+                            date: `$${dateField}`,
+                        },
+                    },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { _id: 1 } },
+            { $project: { _id: 0, date: "$_id", count: 1 } },
+        ]);
+
+        // 4. Fill in days with no data
+        const statsMap = new Map(stats.map((item) => [item.date, item.count]));
+        const result = [];
+        let currentDate = new Date(startDate);
+
+        while (currentDate <= endDate) {
+            const dateString = currentDate.toISOString().split("T")[0];
+            result.push({
+                date: dateString,
+                count: statsMap.get(dateString) || 0,
+            });
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        return dataResponse(
+            200,
+            "Successfully retrieved time series stats",
+            result
+        );
+    } catch (err) {
+        console.error("Service Error:", err);
+        return dataResponse(500, err.message, null);
+    }
+};
+
+export const getCompanyDetailWithJobs = async (companyId) => {
+    try {
+        const company = await CompanyProfile.findById(companyId).lean();
+        if (!company) {
+            return dataResponse(404, "Company not found", null);
+        }
+        const jobs = await Job.find({
+            company: companyId,
+            isExpired: false,
+            isHidden: { $ne: true },
+        })
+            .select("title description location salary level datePosted")
+            .lean();
+        return dataResponse(200, "Company detail with jobs", {
+            ...company,
+            jobs,
+            jobCount: jobs.length,
+        });
+    } catch (err) {
+        return dataResponse(500, err.message, null);
+    }
 };
