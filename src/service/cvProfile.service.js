@@ -19,24 +19,11 @@ const dataResponse = (code, message, payload) => {
  * @param {Object} pdfFile - Đối tượng file PDF từ Multer (req.file), có thể là null nếu không có file mới.
  * @returns {Promise<Object>} - Đối tượng dataResponse.
  */
-export const createOrUpdateCvProfile = async (
-    userId,
-    cvProfileData,
-    pdfFile
-) => {
+export const createOrUpdateCvProfile = async (userId, cvProfileData) => {
     try {
         const user = await User.findById(userId);
         if (!user) {
             return dataResponse(404, "User not found.", null);
-        }
-
-        let pdfUrl = null;
-        if (pdfFile) {
-            if (pdfFile.mimetype !== "application/pdf") {
-                return dataResponse(400, "File must be a PDF document.", null);
-            }
-            // Sử dụng S3 thay vì Cloudinary
-            pdfUrl = await uploadPdfToS3(pdfFile.buffer, pdfFile.originalname);
         }
 
         // Tìm CV Profile hiện có của người dùng
@@ -45,9 +32,6 @@ export const createOrUpdateCvProfile = async (
         if (cvProfile) {
             // Nếu đã có CV Profile, cập nhật nó
             Object.assign(cvProfile, cvProfileData);
-            if (pdfUrl) {
-                cvProfile.linkUrl = pdfUrl;
-            }
             await cvProfile.save();
             return dataResponse(
                 200,
@@ -59,12 +43,10 @@ export const createOrUpdateCvProfile = async (
             const newCvProfile = new CvProfile({
                 ...cvProfileData,
                 user: userId,
-                linkUrl: pdfUrl,
             });
             await newCvProfile.save();
 
-            // **ĐIỂM CỰC KỲ QUAN TRỌNG: GÁN TRỰC TIẾP ID VÀO cvProfile của user**
-            user.cvProfile = newCvProfile._id; // <-- SỬA TẠI ĐÂY!
+            user.cvProfile = newCvProfile._id;
             await user.save();
 
             return dataResponse(
@@ -74,7 +56,7 @@ export const createOrUpdateCvProfile = async (
             );
         }
     } catch (error) {
-        console.error("Error in createOrUpdateCvProfile service:", error); // Log với tên hàm mới
+        console.error("Error in createOrUpdateCvProfile service:", error);
         return dataResponse(500, `Server error: ${error.message}`, null);
     }
 };

@@ -26,7 +26,7 @@ const CVProfileSchema = new mongoose.Schema({
 
     description: String,
 
-    certifications: String,
+    certifications: [String],
     linkUrl: String,
     number: String,
     avatar: String,
