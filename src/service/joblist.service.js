@@ -136,9 +136,8 @@ export const hideJob = async (jobId) => {
             await sendEmail(
                 user.email,
                 "Job của bạn đã bị ẩn",
-                `Job "${job.title}" đã bị report và bị ẩn bởi admin.`
+                `Job "${job.title}" đã bị ẩn vì vi phạm nguyên tắc của hệ thống.`
             );
-            // Gửi thông báo
             await createNotification(
                 user._id,
                 `Tin tuyển dụng "${job.title}" của bạn đã bị ẩn bởi quản trị viên.`,
@@ -146,6 +145,24 @@ export const hideJob = async (jobId) => {
                 "/manage-jobs"
             );
         }
+
+        // Chuyển tất cả đơn ứng tuyển về REJECTED và gửi mail cho ứng viên
+        const applications = await Application.find({
+            job: jobId,
+            status: { $ne: "REJECTED" },
+        }).populate("user");
+        for (const app of applications) {
+            app.status = "REJECTED";
+            await app.save();
+            if (app.user && app.user.email) {
+                await sendEmail(
+                    app.user.email,
+                    "Đơn ứng tuyển bị từ chối",
+                    `Đơn ứng tuyển của bạn cho công việc "${job.title}" đã bị từ chối vì công việc này vi phạm nguyên tắc của hệ thống.`
+                );
+            }
+        }
+
         return dataResponse(200, "Job hidden successfully", job);
     } catch (error) {
         console.error("Error in hideJob service:", error);
@@ -153,6 +170,7 @@ export const hideJob = async (jobId) => {
     }
 };
 
+// Admin bỏ ẩn job
 export const unhideJob = async (jobId) => {
     try {
         const job = await Job.findByIdAndUpdate(
@@ -172,8 +190,8 @@ export const unhideJob = async (jobId) => {
         if (user) {
             await sendEmail(
                 user.email,
-                "Job của bạn đã được bỏ ẩn",
-                `Job "${job.title}" đã được admin bỏ ẩn và hiển thị trở lại.`
+                "Job của bạn đã được mở lại",
+                `Job "${job.title}" đã được admin mở lại và hiển thị trở lại trên hệ thống.`
             );
         }
         return dataResponse(200, "Job unhidden successfully", job);
