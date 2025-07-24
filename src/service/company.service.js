@@ -4,6 +4,8 @@ import LimitJobs from "../models/limitJobs.model.js";
 import Job from "../models/jobs.model.js";
 import Application from "../models/application.model.js";
 import Payment from "../models/payment.model.js";
+import { sendEmail } from "../utils/auth.util.js";
+import User from "../models/user.model.js";
 
 const dataResponse = (code, message, payload) => {
     return {
@@ -113,16 +115,43 @@ export const getPendingCompanies = async () => {
     }
 };
 
-export const updateCompanyApproval = async (companyId, isApproved) => {
+export const updateCompanyApproval = async (
+    companyId,
+    isApproved,
+    reason = ""
+) => {
     try {
         const updatedCompany = await CompanyProfile.findByIdAndUpdate(
             companyId,
             { isApproved: isApproved },
             { new: true }
-        );
+        ).populate("user");
         if (!updatedCompany) {
             return dataResponse(404, "Company not found", null);
         }
+
+        // Gửi email cho chủ công ty
+        if (updatedCompany.user && updatedCompany.user.email) {
+            if (isApproved) {
+                await sendEmail(
+                    updatedCompany.user.email,
+                    "Công ty của bạn đã được duyệt",
+                    `Chúc mừng! Công ty "${updatedCompany.companyName}" đã được duyệt và có thể sử dụng các tính năng của hệ thống.`
+                );
+            } else {
+                await sendEmail(
+                    updatedCompany.user.email,
+                    "Công ty của bạn bị từ chối",
+                    `Rất tiếc! Công ty "${
+                        updatedCompany.companyName
+                    }" đã bị từ chối duyệt. Lý do: ${
+                        reason ||
+                        "Không đáp ứng đủ điều kiện hoặc thông tin chưa hợp lệ."
+                    }`
+                );
+            }
+        }
+
         return dataResponse(
             200,
             "Company approval status updated",
