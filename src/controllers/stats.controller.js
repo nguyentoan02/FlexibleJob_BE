@@ -1,4 +1,4 @@
-import { getCompaniesByMonth, getRevenueByMonth, getTopCompaniesByJobs, getRecentActivity, getUserTypeRatio, getJobsByMonth } from "../service/stats.service.js";
+import { getCompaniesByMonth, getRevenueByMonth, getTopCompaniesByJobs, getRecentActivity, getUserTypeRatio, getJobsByMonth, getReportedJobsStats } from "../service/stats.service.js";
 
 export const companiesByMonthController = async (req, res) => {
   res.json(await getCompaniesByMonth());
@@ -19,4 +19,20 @@ export const userTypeRatioController = async (req, res) => {
 };
 export const jobsByMonthController = async (req, res) => {
   res.json(await getJobsByMonth());
+};
+
+// Get reported jobs statistics
+export const getReportedJobsStatsController = async (req, res) => {
+  try {
+    const stats = await getReportedJobsStats();
+    res.status(200).json({
+      message: "Reported jobs statistics retrieved successfully",
+      payload: stats
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+      payload: null
+    });
+  }
 }; 

@@ -7,7 +7,8 @@ import {
   topCompaniesByJobsController,
   recentActivityController,
   userTypeRatioController,
-  jobsByMonthController
+  jobsByMonthController,
+  getReportedJobsStatsController
 } from "../controllers/stats.controller.js";
 
 const router = express.Router();
@@ -21,5 +22,8 @@ router.get("/top-companies-by-jobs", topCompaniesByJobsController);
 router.get("/recent-activity", recentActivityController);
 router.get("/user-type-ratio", userTypeRatioController);
 router.get("/jobs-by-month", jobsByMonthController);
+
+// Get reported jobs statistics
+router.get("/reported-jobs", getReportedJobsStatsController);
 
 export default router; 
