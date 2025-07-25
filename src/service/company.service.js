@@ -57,8 +57,8 @@ export const updateCompanyProfile = async (userId, data) => {
         // 4. Update
         const updatedCompanyProfile = await CompanyProfile.findOneAndUpdate(
             { user: userObjectId },
-            { $set: updateData },
-            { new: true, runValidators: true }
+            updateData,
+            { new: true }
         );
 
         if (!updatedCompanyProfile) {
@@ -200,8 +200,11 @@ export const getAllInVoices = async (userId) => {
 
 export const getAllCompaniesWithJobs = async () => {
     try {
-        // Lấy tất cả công ty
-        const companies = await CompanyProfile.find({ status: true }).lean();
+        // Lấy tất cả công ty đã được duyệt
+        const companies = await CompanyProfile.find({
+            status: true,
+            isApproved: true,
+        }).lean();
 
         // Lấy job cho từng công ty
         const companyIds = companies.map((c) => c._id);

@@ -76,10 +76,17 @@ export const updateCompany = async (req, res) => {
             }
         }
 
+        // Xử lý benefit: chuyển từ string sang array nếu cần
+        let benefit = req.body.benefit;
+        if (typeof benefit === "string") {
+            benefit = benefit.split(",").map((item) => item.trim()); // Tách chuỗi thành mảng, loại bỏ khoảng trắng
+        }
+
         const cleanedImages = removeEmptyFields(result);
         const profileData = {
             ...req.body,
             ...cleanedImages,
+            benefit: benefit, // Gán benefit đã xử lý
             removeImages: imagesToRemove,
         };
 
