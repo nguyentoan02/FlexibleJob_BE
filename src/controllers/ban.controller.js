@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import CompanyProfile from "../models/companyprofile.model.js";
 import { sendEmail } from "../utils/auth.util.js";
 
 // Ban a user account
@@ -41,6 +42,15 @@ export const banUser = async (req, res) => {
         user.banReason = reason;
         user.banAt = new Date();
         await user.save();
+
+        // Nếu user là EMPLOYER, tự động thay đổi isApproved của company thành false
+        if (user.role === "EMPLOYER") {
+            const company = await CompanyProfile.findOne({ user: userId });
+            if (company) {
+                company.isApproved = false;
+                await company.save();
+            }
+        }
 
         // Gửi email thông báo ban
         await sendEmail(
@@ -91,7 +101,18 @@ export const unbanUser = async (req, res) => {
         }
 
         user.isBanned = false;
+        user.banReason = null;
+        user.banAt = null;
         await user.save();
+
+        // Nếu user là EMPLOYER, tự động thay đổi isApproved của company thành true
+        if (user.role === "EMPLOYER") {
+            const company = await CompanyProfile.findOne({ user: userId });
+            if (company) {
+                company.isApproved = true;
+                await company.save();
+            }
+        }
 
         return res.status(200).json({ 
             success: true,

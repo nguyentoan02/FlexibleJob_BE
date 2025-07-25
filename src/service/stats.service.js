@@ -161,4 +161,27 @@ export const getJobsByMonth = async () => {
     const found = data.find(d => d._id.year === year && d._id.month === month);
     return { month: `${year}-${String(month).padStart(2, "0")}`, count: found ? found.count : 0 };
   });
+};
+
+// Get reported jobs statistics
+export const getReportedJobsStats = async () => {
+  try {
+    // Đếm số jobs bị report
+    const reportedJobs = await Job.countDocuments({ 
+      $or: [
+        { isReported: true },
+        { reportCount: { $gt: 0 } }
+      ]
+    });
+
+    // Đếm tổng số jobs
+    const totalJobs = await Job.countDocuments();
+
+    return {
+      reportedJobs,
+      totalJobs
+    };
+  } catch (err) {
+    throw new Error(err.message);
+  }
 }; 
