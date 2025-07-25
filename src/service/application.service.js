@@ -27,7 +27,10 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
             return dataResponse(404, "User not found.", null);
         }
 
-        const job = await Job.findById(jobId);
+        const job = await Job.findById(jobId).populate({
+            path: "company",
+            select: "user",
+        });
         if (!job) {
             return dataResponse(404, "Job not found.", null);
         }
@@ -72,12 +75,14 @@ export const applyForJob = async (userId, jobId, cvProfileId, noted = "") => {
 
         // Gửi thông báo cho nhà tuyển dụng
         const companyOwnerId = job.company.user;
-        await createNotification(
-            companyOwnerId,
-            `Ứng viên ${user.firstName} ${user.lastName} vừa nộp đơn vào vị trí ${job.title}.`,
-            "APPLICATION_SUBMITTED",
-            `/company/applications`
-        );
+        if (companyOwnerId) {
+            await createNotification(
+                companyOwnerId,
+                `Ứng viên ${user.firstName} ${user.lastName} vừa nộp đơn vào vị trí ${job.title}.`,
+                "APPLICATION_SUBMITTED",
+                `/company/applications` // Hoặc link đến trang quản lý ứng viên
+            );
+        }
 
         // Gửi thông báo xác nhận cho ứng viên
         await createNotification(
