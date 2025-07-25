@@ -6,12 +6,14 @@ import dotenv from "dotenv";
 
 dotenv.config(); // Load environment variables
 
+const baseURL = process.env.BASE_URL || "http://localhost:5000"; // Default value
+
 passport.use(
     new GoogleStrategy(
         {
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: process.env.GOOGLE_CALLBACK_URL,
+            callbackURL: `${baseURL}${process.env.GOOGLE_CALLBACK_URL}`,
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
@@ -26,8 +28,9 @@ passport.use(
                 if (user) {
                     // Kiểm tra xem tài khoản có bị ban không
                     if (user.isBanned) {
-                        return done(null, false, { 
-                            message: "Your account has been banned. Please contact administrator for more information." 
+                        return done(null, false, {
+                            message:
+                                "Your account has been banned. Please contact administrator for more information.",
                         });
                     }
 
@@ -46,7 +49,7 @@ passport.use(
                         lastName: profile.name.familyName,
                         imageUrl: profile.photos[0].value,
                         isBanned: false,
-                        role: "JOBSEEKER"
+                        role: "JOBSEEKER",
                         // Mật khẩu sẽ không được set nếu đăng nhập bằng Google
                         // Nếu bạn muốn yêu cầu mật khẩu sau này, có thể thêm logic ở đây
                     });
