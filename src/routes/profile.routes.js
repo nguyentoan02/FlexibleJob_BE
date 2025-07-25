@@ -12,12 +12,12 @@ const router = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.get("/me", auth, profileAuth, getMyProfile);
+router.get("/me", auth, getMyProfile);
 
 router.put(
     "/me",
     auth,
-    profileAuth,
+
     upload.single("profileImage"),
     updateMyProfile
 );
