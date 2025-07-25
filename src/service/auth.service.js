@@ -15,7 +15,13 @@ const dataResponse = (code, message, payload) => {
     };
 };
 
-export const createAccount = async (email, hashedPassword, role) => {
+export const createAccount = async (
+    firstName,
+    lastName,
+    email,
+    hashedPassword,
+    role
+) => {
     try {
         const exists = await User.exists({ email: email });
         if (exists) {
@@ -30,7 +36,13 @@ export const createAccount = async (email, hashedPassword, role) => {
         await Token.create({
             token: verifyToken,
             type: "verifyEmail",
-            tempData: { email, password: hashedPassword, role },
+            tempData: {
+                firstName,
+                lastName,
+                email,
+                password: hashedPassword,
+                role,
+            },
         });
 
         // Thêm timeout cho gửi mail
@@ -83,7 +95,13 @@ export const loginAccount = async (email, password) => {
     }
 
     const token = jwt.sign(
-        { id: user._id, role: user.role, username: user.email },
+        {
+            id: user._id,
+            role: user.role,
+            username: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+        },
         secret,
         { expiresIn }
     );
@@ -109,7 +127,7 @@ export const resetPasswordViaEmail = async (email) => {
         const sendToken = await sendEmail(
             email,
             "Reset Your password",
-            `http://localhost:5173/resetPassword/${resetToken}`
+            `${process.env.FRONTEND_URL}/${resetToken}`
         );
         return sendToken;
     } else {
@@ -176,8 +194,9 @@ export const verifyEmail = async (token) => {
     }
 
     // Lấy thông tin đăng ký tạm thời
-    const { email, password, role } = tokenDoc.tempData || {};
-    if (!email || !password || !role) {
+    const { firstName, lastName, email, password, role } =
+        tokenDoc.tempData || {};
+    if (!email || !password || !role || !firstName || !lastName) {
         return dataResponse(400, "Thiếu thông tin đăng ký.", null);
     }
 
@@ -199,6 +218,8 @@ export const verifyEmail = async (token) => {
 
     // Tạo user thật sự
     const user = new User({
+        firstName,
+        lastName,
         email,
         password,
         role,
