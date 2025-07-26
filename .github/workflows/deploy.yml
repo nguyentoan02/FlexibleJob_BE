@@ -47,6 +47,9 @@ jobs:
                       exit 1
                     fi
 
+                    # Backup file .env TRƯỚC KHI git operations
+                    cp .env .env.backup
+
                     if [ -d ".git" ]; then
                       git fetch origin
                       git checkout feat/merge
@@ -56,14 +59,16 @@ jobs:
                       rm -rf ./*
                       rm -rf ./.*
                       git clone -b feat/merge https://github.com/nguyentoan02/FlexibleJob_BE.git .
-                      # Copy lại file .env sau khi clone (vì git clone sẽ xóa mọi thứ)
-                      if [ -f "/home/ec2-user/app/.env.backup" ]; then
-                        cp /home/ec2-user/app/.env.backup /home/ec2-user/app/.env
-                      fi
                     fi
 
-                    # Backup file .env trước khi build
-                    cp .env .env.backup
+                    # Copy lại file .env sau khi git operations (cho cả 2 trường hợp)
+                    if [ -f ".env.backup" ]; then
+                      cp .env.backup .env
+                      echo "✅ Restored .env from backup"
+                    else
+                      echo "❌ No .env backup found!"
+                      exit 1
+                    fi
 
                     docker build -t myapp:latest .
 
