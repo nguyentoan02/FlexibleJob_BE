@@ -38,41 +38,41 @@ jobs:
                     scp -o StrictHostKeyChecking=no -i key.pem .env.temp $SSH_USER@$HOST:$APP_DIR/.env
 
                     ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$HOST << 'EOF'
-                      set -e
-                      cd /home/ec2-user/app
+                    set -e
+                    cd /home/ec2-user/app
 
-                      if [ ! -d ".git" ]; then
-                        git clone -b feat/merge https://github.com/nguyentoan02/FlexibleJob_BE.git .
-                      else
-                        git fetch origin
-                        git checkout feat/merge
-                        git pull origin feat/merge
-                      fi
+                    if [ ! -d ".git" ]; then
+                      git clone -b feat/merge https://github.com/nguyentoan02/FlexibleJob_BE.git .
+                    else
+                      git fetch origin
+                      git checkout feat/merge
+                      git pull origin feat/merge
+                    fi
 
-                      docker build -t myapp:latest .
+                    docker build -t myapp:latest .
 
-                      # Stop & remove myapp_new nếu đang tồn tại
-                      if [ "$(docker ps -aq -f name=myapp_new)" ]; then
-                        docker stop myapp_new || true
-                        docker rm myapp_new || true
-                      fi
+                    # Stop & remove myapp_new nếu đang tồn tại
+                    if [ "$(docker ps -aq -f name=myapp_new)" ]; then
+                      docker stop myapp_new || true
+                      docker rm myapp_new || true
+                    fi
 
-                      docker run -d --name myapp_new -p 6001:5000 --env-file .env myapp:latest
+                    docker run -d --name myapp_new -p 6001:5000 --env-file .env myapp:latest
 
-                      sleep 10
+                    sleep 10
 
-                      # Stop & remove container cũ nếu có
-                      if [ "$(docker ps -aq -f name=myapp)" ]; then
-                        docker stop myapp || true
-                        docker rm myapp || true
-                      fi
+                    # Stop & remove container cũ nếu có
+                    if [ "$(docker ps -aq -f name=myapp)" ]; then
+                      docker stop myapp || true
+                      docker rm myapp || true
+                    fi
 
-                      docker rename myapp_new myapp
+                    docker rename myapp_new myapp
 
-                      docker system prune -af
+                    docker system prune -af
 
-                      echo "✅ Done on $HOST"
-                    EOF
+                    echo "✅ Done on $HOST"
+                  EOF
 
                     echo "🕒 Waiting before next deploy..."
                     sleep 10
