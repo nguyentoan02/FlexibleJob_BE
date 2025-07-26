@@ -1,0 +1,182 @@
+import CompanyProfile from "../models/companyprofile.model.js";
+import Job from "../models/jobs.model.js";
+import LimitJobs from "../models/limitJobs.model.js";
+import FollowCompany from "../models/followcompany.model.js";
+import { sendEmail } from "../utils/auth.util.js";
+
+const dataResponse = (code, message, payload) => {
+    return {
+        code: code,
+        message: message,
+        payload: payload,
+    };
+};
+
+export const getAllAvailableJobs = async (page, limit) => {
+    const jobs = await Job.find({ isExpire: false })
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort({ createdAt: -1 });
+    const count = await Job.countDocuments();
+    const payload = {
+        jobs: jobs,
+        totalPage: Math.ceil(count / limit),
+        currentPage: page,
+    };
+    return dataResponse(200, "All jobs available", payload);
+};
+
+export const createJobForCompany = async (data) => {
+    try {
+        const result = await Job.create(data);
+
+        // Lấy danh sách người dùng đã follow công ty
+        const followers = await FollowCompany.find({
+            company: data.company,
+        }).populate("user", "email firstName lastName");
+        console.log("Followers count:", followers.length);
+
+        for (const follow of followers) {
+            if (follow.user && follow.user.email) {
+                try {
+                    await sendEmail(
+                        follow.user.email,
+                        "Công ty bạn theo dõi vừa đăng job mới",
+                        `Công ty bạn theo dõi vừa đăng tin tuyển dụng mới: "${result.title}". Hãy truy cập để xem chi tiết!`
+                    );
+                    console.log("Sent mail to:", follow.user.email);
+                } catch (mailErr) {
+                    console.error(
+                        "Send mail error:",
+                        mailErr,
+                        follow.user.email
+                    );
+                }
+            }
+        }
+
+        return dataResponse(200, "create job success", result);
+    } catch (error) {
+        return dataResponse(500, error.message, null);
+    }
+};
+
+export const getJobByCompanyId = async (companyId) => {
+    const isCompanyExist = await CompanyProfile.exists(companyId);
+    if (isCompanyExist) {
+        const jobs = await Job.find({
+            company: companyId,
+        });
+        return dataResponse(200, "found", jobs);
+    }
+    return 404, "company not found", null;
+};
+
+export const expireJob = async (jobId, action, expireDate) => {
+    try {
+        const job = await Job.findByIdAndUpdate(
+            jobId,
+            {
+                isExpired: action,
+                expiredAt: expireDate,
+            },
+            { new: true }
+        );
+
+        if (!job) {
+            return dataResponse(404, "Cannot find this job", null);
+        }
+
+        return dataResponse(200, "Job marked as expired successfully", job);
+    } catch (error) {
+        return dataResponse(500, "Internal server error", null);
+    }
+};
+
+export const getListApplicant = async (jobId) => {
+    const applicants = await Job.findById(jobId)
+        .select("applicants")
+        .populate({
+            path: "applicants",
+            populate: [
+                { path: "cvSnapshot" },
+                { path: "user", select: "firstName lastName email imageUrl" },
+            ],
+        });
+    if (!applicants) {
+        return dataResponse(404, "Job not found", null);
+    }
+    return dataResponse(200, "Success", applicants);
+};
+
+export const updateJobByJobId = async (jobId, data) => {
+    const updatedJob = await Job.findByIdAndUpdate(
+        jobId,
+        { ...data },
+        { new: true }
+    );
+    if (!updatedJob) {
+        return dataResponse(404, "not found this job", null);
+    }
+    return dataResponse(200, "job updated");
+};
+
+export const getJobs = async (companyId) => {
+    const jobs = await Job.find({
+        company: companyId,
+    });
+    return dataResponse(200, "success", jobs);
+};
+
+export const getCompanyIdByUserId = async (userId) => {
+    const company = await CompanyProfile.exists({ user: userId });
+    if (!company) {
+        return dataResponse(404, "not found this company", null);
+    }
+    return dataResponse(200, "found", company);
+};
+
+export const getJobsByUserId = async (
+    userId,
+    page = 1,
+    limit = 10,
+    search = ""
+) => {
+    const company = await CompanyProfile.findOne({ user: userId });
+    if (!company) {
+        return dataResponse(404, "Cannot find this company", null);
+    }
+
+    const skip = (page - 1) * limit;
+
+    const query = { company: company._id };
+
+    if (search) {
+        query.title = { $regex: search, $options: "i" }; // không phân biệt hoa thường
+    }
+
+    const jobs = await Job.find(query).skip(skip).limit(limit).exec();
+
+    const total = await Job.countDocuments(query);
+
+    return dataResponse(200, "Jobs of the company", {
+        total,
+        page,
+        limit,
+        jobs,
+    });
+};
+
+export const getJobById = async (jId) => {
+    const job = await Job.findById(jId);
+    if (!job) {
+        return dataResponse(404, "not found", null);
+    }
+    return dataResponse(200, "found", job);
+};
+
+export const getLimit = async (userId) => {
+    const companyId = await CompanyProfile.exists({ user: userId });
+    const jobLimit = await LimitJobs.findOne({ company: companyId._id });
+    return dataResponse(200, "found", jobLimit);
+};
