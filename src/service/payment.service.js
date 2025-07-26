@@ -135,7 +135,7 @@ export const webHook = async (webhookData) => {
 // Tính tổng doanh thu từ các payment thành công
 export const getTotalRevenue = async () => {
     const result = await Payment.aggregate([
-        { $match: { status: "PENDING" } },
+        { $match: { status: "SUCCESS" } },
         { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
     return result[0]?.total || 0;
@@ -144,7 +144,7 @@ export const getTotalRevenue = async () => {
 // Lấy danh sách người dùng đã mua dịch vụ (payment thành công)
 export const getBuyersList = async () => {
     // Lấy các payment thành công, populate user và package
-    const payments = await Payment.find({ status: "PENDING" })
+    const payments = await Payment.find({ status: "SUCCESS" })
         .populate("userId", "firstName lastName email role")
         .populate("packageId", "name price description");
     // Trả về danh sách gồm user, package, amount, thời gian mua

@@ -18,7 +18,7 @@ export const searchJobs = async (searchParams, page = 1, limit = 10) => {
         }
 
         // Tìm theo location
-        if (searchParams.location) {
+        if (searchParams.location && searchParams.location !== "all") {
             query.location = { $regex: searchParams.location, $options: "i" };
         }
 
