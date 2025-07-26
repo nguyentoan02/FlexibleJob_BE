@@ -3,7 +3,7 @@ name: 🚀 Build, Push and Deploy
 on:
     push:
         branches:
-            - feat/merge
+            - feat/Merge
 
 env:
     SSH_USER: ec2-user
