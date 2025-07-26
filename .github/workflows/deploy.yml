@@ -90,7 +90,7 @@ jobs:
                     docker rm myapp_new myapp 2>/dev/null || true
 
                     # Tạo container mới
-                    docker run -d --name myapp_new -p 6001:5000 --env-file /home/ec2-user/app/.env myapp:latest
+                    docker run -d --name myapp_new -p 6000:5000 --env-file /home/ec2-user/app/.env myapp:latest
 
                     sleep 10
 
