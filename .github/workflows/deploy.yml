@@ -51,23 +51,35 @@ jobs:
                     cp .env .env.backup
 
                     if [ -d ".git" ]; then
+                      echo "📁 Existing git repository found, updating..."
                       git fetch origin
                       git checkout feat/merge
                       git reset --hard origin/feat/merge
                       git pull origin feat/merge
+                      
+                      # Copy lại file .env sau khi git pull
+                      if [ -f ".env.backup" ]; then
+                        cp .env.backup .env
+                        echo "✅ Restored .env from backup after git pull"
+                      fi
                     else
+                      echo "🆕 No git repository found, cloning..."
+                      # Backup .env to parent directory before removing everything
+                      cp .env ../.env.backup.temp
+                      
                       rm -rf ./*
                       rm -rf ./.*
                       git clone -b feat/merge https://github.com/nguyentoan02/FlexibleJob_BE.git .
-                    fi
-
-                    # Copy lại file .env sau khi git operations (cho cả 2 trường hợp)
-                    if [ -f ".env.backup" ]; then
-                      cp .env.backup .env
-                      echo "✅ Restored .env from backup"
-                    else
-                      echo "❌ No .env backup found!"
-                      exit 1
+                      
+                      # Restore .env from parent directory
+                      if [ -f "../.env.backup.temp" ]; then
+                        cp ../.env.backup.temp .env
+                        rm ../.env.backup.temp
+                        echo "✅ Restored .env from temporary backup after git clone"
+                      else
+                        echo "❌ No temporary .env backup found!"
+                        exit 1
+                      fi
                     fi
 
                     docker build -t myapp:latest .
