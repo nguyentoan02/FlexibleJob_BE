@@ -33,7 +33,13 @@ export const create = async (userId, packageId) => {
 };
 
 export const webHook = async (webhookData) => {
-    const { orderCode, success, data } = webhookData;
+    const { data } = webhookData;
+
+    // BƯỚC 1: Bỏ qua webhook test từ PayOS
+    if (data.orderCode === 123 || data.orderCode === "123") {
+        console.log("PayOS test webhook received, ignoring...");
+        return { success: true, message: "Test webhook ignored" };
+    }
 
     const payment = await Payment.findOne({ orderCode: data.orderCode });
     if (!payment) {
@@ -46,9 +52,12 @@ export const webHook = async (webhookData) => {
 
     if (data.code === "00") {
         payment.status = "SUCCESS";
-        payment.transactionId = data.paymentId;
+        // Sửa lại: transactionId thường là 'reference' trong webhook PayOS
+        payment.transactionId = data.reference;
 
-        const user = await User.findById(payment.userId);
+        const user = await User.findById(payment.userId).populate(
+            "companyProfile"
+        );
         const pkg = await Package.findById(payment.packageId);
 
         console.log(
@@ -57,10 +66,11 @@ export const webHook = async (webhookData) => {
         );
         console.log("Webhook - Package found:", pkg ? pkg.name : "Not Found");
 
-        if (user && pkg) {
+        if (user && pkg && user.companyProfile) {
             user.package = {
                 packageId: pkg._id,
                 purchaseDate: new Date(),
+                // Sửa lại cách tính ngày hết hạn
                 expiryDate: new Date(
                     new Date().setDate(
                         new Date().getDate() + (pkg.durationInDays || 30)
@@ -69,16 +79,14 @@ export const webHook = async (webhookData) => {
             };
             await user.save();
 
-            let addJobs = 0;
-            if (pkg.name === "Ultimate") addJobs = 10;
-            else if (pkg.name === "Business") addJobs = 11;
-            else if (pkg.name === "Basic") addJobs = 12;
+            // Sửa lại: Lấy jobLimit từ package thay vì hardcode
+            const addJobs = pkg.jobLimit || 0;
 
             console.log(
                 `Webhook - Package: ${pkg.name}, Jobs to add: ${addJobs}`
             );
 
-            const companyId = user.companyProfile;
+            const companyId = user.companyProfile._id; // Lấy _id từ object companyProfile
             console.log("Webhook - CompanyProfile ID from user:", companyId);
 
             if (companyId) {
@@ -125,7 +133,7 @@ export const webHook = async (webhookData) => {
 export const getTotalRevenue = async () => {
     const result = await Payment.aggregate([
         { $match: { status: "PENDING" } },
-        { $group: { _id: null, total: { $sum: "$amount" } } }
+        { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
     return result[0]?.total || 0;
 };
@@ -137,10 +145,10 @@ export const getBuyersList = async () => {
         .populate("userId", "firstName lastName email role")
         .populate("packageId", "name price description");
     // Trả về danh sách gồm user, package, amount, thời gian mua
-    return payments.map(payment => ({
+    return payments.map((payment) => ({
         user: payment.userId,
         package: payment.packageId,
         amount: payment.amount,
-        purchasedAt: payment.createdAt
+        purchasedAt: payment.createdAt,
     }));
 };
