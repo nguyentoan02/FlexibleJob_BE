@@ -35,7 +35,7 @@ jobs:
                   for HOST in "${HOSTS[@]}"; do
                     echo "👉 Deploying to $HOST"
                     scp -o StrictHostKeyChecking=no -i key.pem .env.temp $SSH_USER@$HOST:$APP_DIR/.env
-                    ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$HOST << EOF
+                    ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$HOST <<'EOF'
                       set -e
                       cd /home/ec2-user/app
                       if [ ! -d ".git" ]; then
@@ -59,7 +59,8 @@ jobs:
                       docker rename myapp_new myapp
                       docker system prune -af
                       echo "✅ Done on $HOST"
-EOF
+                  EOF
                     echo "🕒 Waiting before next deploy..."
                     sleep 10
                   done
+  
