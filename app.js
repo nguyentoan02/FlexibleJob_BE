@@ -41,7 +41,3 @@ connectDB()
     .catch((error) => {
         console.log("Cannot connect to DB", error);
     });
-
-app.get("/api/health", (req, res) => {
-    res.status(200).json({ status: "ok" });
-});
