@@ -98,7 +98,8 @@ jobs:
                       
                       # Tạo container mới
                       echo '🚀 Starting new container...'
-                      docker run -d --name ${{ env.DOCKER_IMAGE_NAME }}_new -p 6000:5000 --env-file ${{ env.APP_DIR }}/.env $FULL_IMAGE_NAME
+                      # Đổi port BE từ 6000 sang 5001
+                      docker run -d --name ${{ env.DOCKER_IMAGE_NAME }}_new -p 5001:5000 --env-file ${{ env.APP_DIR }}/.env $FULL_IMAGE_NAME
                       
                       echo '⌛ Waiting for new container to be healthy...'
                       sleep 10
