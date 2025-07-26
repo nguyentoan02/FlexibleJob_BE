@@ -72,12 +72,12 @@ jobs:
 
                     docker build -t myapp:latest .
 
-                    if [ "$(docker ps -aq -f name=myapp_new)" ]; then
-                      docker stop myapp_new || true
-                      docker rm myapp_new || true
-                    fi
+                    # THÊM: Dọn dẹp tất cả containers cũ trước khi tạo mới
+                    echo "🧹 Cleaning up old containers..."
+                    docker stop myapp_new myapp 2>/dev/null || true
+                    docker rm myapp_new myapp 2>/dev/null || true
 
-                    # Sử dụng đường dẫn tuyệt đối cho file .env
+                    # Tạo container mới
                     docker run -d --name myapp_new -p 6001:5000 --env-file /home/ec2-user/app/.env myapp:latest
 
                     sleep 10
@@ -86,11 +86,7 @@ jobs:
                     if [ "$(docker ps -q -f name=myapp_new)" ]; then
                       echo "✅ New container is running successfully"
                       
-                      if [ "$(docker ps -aq -f name=myapp)" ]; then
-                        docker stop myapp || true
-                        docker rm myapp || true
-                      fi
-
+                      # Rename container mới thành tên chính
                       docker rename myapp_new myapp
                     else
                       echo "❌ New container failed to start"
