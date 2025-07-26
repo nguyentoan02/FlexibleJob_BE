@@ -41,6 +41,12 @@ jobs:
                     set -e
                     cd /home/ec2-user/app
 
+                    # Kiểm tra file .env có tồn tại không
+                    if [ ! -f ".env" ]; then
+                      echo "❌ .env file not found!"
+                      exit 1
+                    fi
+
                     if [ -d ".git" ]; then
                       git fetch origin
                       git checkout feat/merge
@@ -50,7 +56,14 @@ jobs:
                       rm -rf ./*
                       rm -rf ./.*
                       git clone -b feat/merge https://github.com/nguyentoan02/FlexibleJob_BE.git .
+                      # Copy lại file .env sau khi clone (vì git clone sẽ xóa mọi thứ)
+                      if [ -f "/home/ec2-user/app/.env.backup" ]; then
+                        cp /home/ec2-user/app/.env.backup /home/ec2-user/app/.env
+                      fi
                     fi
+
+                    # Backup file .env trước khi build
+                    cp .env .env.backup
 
                     docker build -t myapp:latest .
 
@@ -59,16 +72,26 @@ jobs:
                       docker rm myapp_new || true
                     fi
 
-                    docker run -d --name myapp_new -p 6001:5000 --env-file .env myapp:latest
+                    # Sử dụng đường dẫn tuyệt đối cho file .env
+                    docker run -d --name myapp_new -p 6001:5000 --env-file /home/ec2-user/app/.env myapp:latest
 
                     sleep 10
 
-                    if [ "$(docker ps -aq -f name=myapp)" ]; then
-                      docker stop myapp || true
-                      docker rm myapp || true
-                    fi
+                    # Kiểm tra container có chạy thành công không
+                    if [ "$(docker ps -q -f name=myapp_new)" ]; then
+                      echo "✅ New container is running successfully"
+                      
+                      if [ "$(docker ps -aq -f name=myapp)" ]; then
+                        docker stop myapp || true
+                        docker rm myapp || true
+                      fi
 
-                    docker rename myapp_new myapp
+                      docker rename myapp_new myapp
+                    else
+                      echo "❌ New container failed to start"
+                      docker logs myapp_new
+                      exit 1
+                    fi
 
                     docker system prune -af
 
