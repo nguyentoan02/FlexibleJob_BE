@@ -37,9 +37,7 @@ jobs:
                     scp -o StrictHostKeyChecking=no -i key.pem .env.temp $SSH_USER@$HOST:$APP_DIR/.env
                     ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$HOST << EOF
                       set -e
-                      mkdir -p $APP_DIR
-                      cd $APP_DIR
-                      # Clone hoặc pull code đúng branch
+                      cd /home/ec2-user/app
                       if [ ! -d ".git" ]; then
                         git clone -b feat/merge https://github.com/nguyentoan02/FlexibleJob_BE.git .
                       else
@@ -47,21 +45,21 @@ jobs:
                         git checkout feat/merge
                         git pull origin feat/merge
                       fi
-                      # Build image mới
                       docker build -t myapp:latest .
-                      # Chạy container mới trên port 6001
+                      if [ "$(docker ps -q -f name=myapp_new)" ]; then
+                          docker stop myapp_new
+                          docker rm myapp_new
+                      fi
                       docker run -d --name myapp_new -p 6001:5000 --env-file .env myapp:latest
-                      # Đợi container mới lên
                       sleep 10
-                      # Stop & remove container cũ nếu có
-                      docker stop myapp || true
-                      docker rm myapp || true
-                      # Đổi tên container mới thành myapp
+                      if [ "$(docker ps -q -f name=myapp)" ]; then
+                          docker stop myapp
+                          docker rm myapp
+                      fi
                       docker rename myapp_new myapp
-                      # Dọn dẹp
-                      docker system prune -f
+                      docker system prune -af
                       echo "✅ Done on $HOST"
-                    EOF
+EOF
                     echo "🕒 Waiting before next deploy..."
                     sleep 10
                   done
