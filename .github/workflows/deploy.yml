@@ -59,7 +59,7 @@ jobs:
                       docker rename myapp_new myapp
                       docker system prune -af
                       echo "✅ Done on $HOST"
-EOF
+                  EOF
                     echo "🕒 Waiting before next deploy..."
                     sleep 10
                   done
