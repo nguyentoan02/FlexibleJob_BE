@@ -2,7 +2,7 @@ import payos from "../config/payos.js";
 import Package from "../models/package.model.js";
 import Payment from "../models/payment.model.js";
 import User from "../models/user.model.js";
-import LimitJobs from "../models/limitJobs.model.js"; // Thêm dòng này
+import LimitJobs from "../models/limitJobs.model.js";
 
 export const create = async (userId, packageId) => {
     const pkg = await Package.findById(packageId);
@@ -79,8 +79,11 @@ export const webHook = async (webhookData) => {
             };
             await user.save();
 
-            // Sửa lại: Lấy jobLimit từ package thay vì hardcode
-            const addJobs = pkg.jobLimit || 0;
+            // QUAY LẠI LOGIC CŨ CỦA BẠN
+            let addJobs = 0;
+            if (pkg.name === "Ultimate") addJobs = 10;
+            else if (pkg.name === "Business") addJobs = 11;
+            else if (pkg.name === "Basic") addJobs = 12;
 
             console.log(
                 `Webhook - Package: ${pkg.name}, Jobs to add: ${addJobs}`
