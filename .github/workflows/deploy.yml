@@ -1,0 +1,82 @@
+name: 🚀 Deploy to EC2 via Rolling Update
+
+on:
+    push:
+        branches:
+            - feat/merge
+
+env:
+    SSH_USER: ec2-user
+    APP_DIR: /home/ec2-user/app
+    REPO: git@github.com:nguyentoan02/FlexibleJob_BE.git
+    DOCKER_IMAGE: myapp:latest
+    DEPLOY_PORT: 6000
+
+jobs:
+    deploy:
+        name: Rolling Deploy to EC2
+        runs-on: ubuntu-latest
+
+        strategy:
+            max-parallel: 1
+
+        steps:
+            - name: 📥 Checkout code
+              uses: actions/checkout@v3
+
+            - name: 🔐 Setup SSH key
+              run: |
+                  echo "${{ secrets.EC2_KEY }}" > key.pem
+                  chmod 400 key.pem
+
+            - name: 🚀 Rolling Deploy to EC2
+              env:
+                  ENV_FILE: ${{ secrets.ENV_FILE }}
+              run: |
+                  HOSTS=(${{ secrets.EC2_HOSTS }})
+
+
+                  for HOST in "${HOSTS[@]}"; do
+                    echo "👉 Deploying to $HOST"
+
+                    ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$HOST << EOF
+                      set -e
+                      mkdir -p $APP_DIR
+                      cd $APP_DIR
+
+                      # Clone hoặc pull code đúng branch
+                      if [ ! -d ".git" ]; then
+                        git clone -b feat/merge https://github.com/nguyentoan02/FlexibleJob_BE.git .
+                      else
+                        git fetch origin
+                        git checkout feat/merge
+                        git pull origin feat/merge
+                      fi
+
+                      echo "$ENV_FILE" > .env
+
+                      # Build image mới
+                      docker build -t myapp:latest .
+
+                      # Chạy container mới trên port 6001
+                      docker run -d --name myapp_new -p 6001:5000 --env-file .env myapp:latest
+
+                      # Đợi container mới lên (tối thiểu 10s, hoặc healthcheck)
+                      sleep 10
+
+                      # Stop & remove container cũ nếu có
+                      docker stop myapp || true
+                      docker rm myapp || true
+
+                      # Đổi tên container mới thành myapp
+                      docker rename myapp_new myapp
+
+                      # (Tùy chọn) Dọn dẹp container exited
+                      docker system prune -f
+
+                      echo "✅ Done on $HOST"
+                    EOF
+
+                    echo "🕒 Waiting before next deploy..."
+                    sleep 10
+                  done
