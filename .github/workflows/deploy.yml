@@ -35,7 +35,7 @@ jobs:
                   for HOST in "${HOSTS[@]}"; do
                     echo "👉 Deploying to $HOST"
                     scp -o StrictHostKeyChecking=no -i key.pem .env.temp $SSH_USER@$HOST:$APP_DIR/.env
-                    ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$HOST <<'EOF'
+                    ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$HOST << EOF
                       set -e
                       mkdir -p $APP_DIR
                       cd $APP_DIR
