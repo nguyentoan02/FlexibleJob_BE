@@ -8,7 +8,7 @@ on:
 env:
     SSH_USER: ec2-user
     APP_DIR: /home/ec2-user/app
-    DOCKER_IMAGE_NAME: myapp # Tên image của bạn
+    DOCKER_IMAGE_NAME: myapp-fe # Tên image của bạn
 
 jobs:
     build-and-push:
