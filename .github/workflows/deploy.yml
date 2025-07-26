@@ -8,7 +8,7 @@ on:
 env:
     SSH_USER: ec2-user
     APP_DIR: /home/ec2-user/app
-    REPO: git@github.com:nguyentoan02/FlexibleJob_BE.git
+    REPO: https://github.com/nguyentoan02/FlexibleJob_BE.git
     DOCKER_IMAGE: myapp:latest
     DEPLOY_PORT: 6000
 
@@ -17,27 +17,30 @@ jobs:
         name: Rolling Deploy to EC2
         runs-on: ubuntu-latest
 
-        strategy:
-            max-parallel: 1
-
         steps:
             - name: 📥 Checkout code
               uses: actions/checkout@v3
 
-            - name: 🔐 Setup SSH key
+            - name: 🔐 Setup key, .env and Deploy
               run: |
                   echo "${{ secrets.EC2_KEY }}" > key.pem
                   chmod 400 key.pem
 
-            - name: 🚀 Rolling Deploy to EC2
-              run: |
+                  echo "${{ secrets.ENV_FILE }}" > .env.temp
+
                   HOSTS=(${{ secrets.EC2_HOSTS }})
+
                   for HOST in "${HOSTS[@]}"; do
                     echo "👉 Deploying to $HOST"
+
+                    ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$HOST "mkdir -p $APP_DIR"
+
                     scp -o StrictHostKeyChecking=no -i key.pem .env.temp $SSH_USER@$HOST:$APP_DIR/.env
-                    ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$HOST <<'EOF'
+
+                    ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$HOST << 'EOF'
                       set -e
                       cd /home/ec2-user/app
+
                       if [ ! -d ".git" ]; then
                         git clone -b feat/merge https://github.com/nguyentoan02/FlexibleJob_BE.git .
                       else
@@ -45,21 +48,32 @@ jobs:
                         git checkout feat/merge
                         git pull origin feat/merge
                       fi
+
                       docker build -t myapp:latest .
-                      if [ "$(docker ps -q -f name=myapp_new)" ]; then
-                          docker stop myapp_new
-                          docker rm myapp_new
+
+                      # Stop & remove myapp_new nếu đang tồn tại
+                      if [ "$(docker ps -aq -f name=myapp_new)" ]; then
+                        docker stop myapp_new || true
+                        docker rm myapp_new || true
                       fi
+
                       docker run -d --name myapp_new -p 6001:5000 --env-file .env myapp:latest
+
                       sleep 10
-                      if [ "$(docker ps -q -f name=myapp)" ]; then
-                          docker stop myapp
-                          docker rm myapp
+
+                      # Stop & remove container cũ nếu có
+                      if [ "$(docker ps -aq -f name=myapp)" ]; then
+                        docker stop myapp || true
+                        docker rm myapp || true
                       fi
+
                       docker rename myapp_new myapp
+
                       docker system prune -af
+
                       echo "✅ Done on $HOST"
-                  EOF
+                    EOF
+
                     echo "🕒 Waiting before next deploy..."
                     sleep 10
                   done
